@@ -148,9 +148,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Start the default metrics store
-	startMetricsStore()
-
 	// This component will be watching the OSM MeshConfig and will make it available
 	// to the rest of the components.
 	cfg := configurator.NewConfigurator(configClientset.NewForConfigOrDie(kubeConfig), stop, osmNamespace, osmMeshConfigName)
@@ -175,6 +172,9 @@ func main() {
 		events.GenericEventRecorder().FatalEvent(err, events.InvalidCertificateManager,
 			"Error fetching certificate manager of kind %s", certProviderKind)
 	}
+
+	// Start the default metrics store
+	startMetricsStore(k8sClient)
 
 	if cfg.GetFeatureFlags().EnableMulticlusterMode {
 		log.Info().Msgf("Bootstrapping OSM multicluster gateway")
@@ -281,6 +281,9 @@ func main() {
 	debugConfig := debugger.NewDebugConfig(certDebugger, xdsServer, meshCatalog, proxyRegistry, kubeConfig, kubeClient, cfg, k8sClient)
 	debugConfig.StartDebugServerConfigListener()
 
+	// Start mesh resource count
+	// StartResourceCount(k8sClient, meshSpec, stop)
+
 	k8s.PatchSecretHandler(kubeClient)
 
 	<-stop
@@ -288,9 +291,17 @@ func main() {
 }
 
 // Start the metric store, register the metrics OSM will expose
-func startMetricsStore() {
+func startMetricsStore(kube k8s.Controller) {
+	metricsstore.InitializeMetricStore(kube)
 	metricsstore.DefaultMetricsStore.Start(
 		metricsstore.DefaultMetricsStore.K8sAPIEventCounter,
+		metricsstore.DefaultMetricsStore.NamespaceCount,
+		metricsstore.DefaultMetricsStore.ServiceCount,
+		metricsstore.DefaultMetricsStore.PodCount,
+		metricsstore.DefaultMetricsStore.TrafficTargetCount,
+		metricsstore.DefaultMetricsStore.TrafficSplitCount,
+		metricsstore.DefaultMetricsStore.HTTPRouteGroupCount,
+		metricsstore.DefaultMetricsStore.TCPRouteCount,
 		metricsstore.DefaultMetricsStore.ProxyConnectCount,
 		metricsstore.DefaultMetricsStore.ProxyReconnectCount,
 		metricsstore.DefaultMetricsStore.ProxyConfigUpdateTime,

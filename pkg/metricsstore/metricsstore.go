@@ -6,6 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog/log"
 )
 
 // metricsRootNamespace is the root namespace for all the metrics emitted.
@@ -21,6 +22,30 @@ type MetricsStore struct {
 	 */
 	// K8sAPIEventCounter is the metric counter for the number of K8s API events
 	K8sAPIEventCounter *prometheus.CounterVec
+
+	/*
+	 * Mesh resource metrics
+	 */
+	// NamespaceCount is the metric for the total number of Namespaces in the mesh
+	NamespaceCount prometheus.GaugeFunc
+
+	// ServiceCount is the metric for the total number of Services in the mesh
+	ServiceCount prometheus.GaugeFunc
+
+	// PodCount is the metric for the total number of Pods in the mesh
+	PodCount prometheus.GaugeFunc
+
+	// TrafficTargetCount is the metric for the total number of TrafficTargets in the mesh
+	TrafficTargetCount prometheus.GaugeFunc
+
+	// TrafficSplitCount is the metric for the total number of TrafficSplits in the mesh
+	TrafficSplitCount prometheus.GaugeFunc
+
+	// HTTPRouteGroupCount is the metric for the total number of HTTPRouteGroups in the mesh
+	HTTPRouteGroupCount prometheus.GaugeFunc
+
+	// TCPRouteCount is the metric for the total number of TCPRoutes in the mesh
+	TCPRouteCount prometheus.GaugeFunc
 
 	/*
 	 * Proxy metrics
@@ -65,6 +90,8 @@ type MetricsStore struct {
 	 * MetricsStore internals should be defined below --------------
 	 */
 	registry *prometheus.Registry
+
+	kube KubeResource
 }
 
 var defaultMetricsStore MetricsStore
@@ -72,7 +99,7 @@ var defaultMetricsStore MetricsStore
 // DefaultMetricsStore is the default metrics store
 var DefaultMetricsStore = &defaultMetricsStore
 
-func init() {
+func InitializeMetricStore(kube KubeResource) {
 	/*
 	 * K8s metrics
 	 */
@@ -85,6 +112,101 @@ func init() {
 		},
 		[]string{"type", "namespace"},
 	)
+
+	/*
+	 * Mesh resource metrics
+	 */
+	defaultMetricsStore.NamespaceCount = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: metricsRootNamespace,
+			Subsystem: "resource",
+			Name:      "namespace_count",
+			Help:      "Represents the number of Namespaces monitored by OSM",
+		}, func() float64 {
+			meshNamespaces, err := kube.ListMonitoredNamespaces()
+			if err != nil {
+				log.Error().Err(err).Msgf("failed to list monitored namespaces")
+			}
+			return float64(len(meshNamespaces))
+		})
+
+	defaultMetricsStore.ServiceCount = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: metricsRootNamespace,
+			Subsystem: "resource",
+			Name:      "service_count",
+			Help:      "Represents the number of Services in the mesh",
+		}, func() float64 {
+			meshServices := kube.ListServices()
+			return float64(len(meshServices))
+		})
+
+	defaultMetricsStore.PodCount = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: metricsRootNamespace,
+			Subsystem: "resource",
+			Name:      "pod_count",
+			Help:      "Represents the number of Pods monitored by OSM",
+		}, func() float64 {
+			meshPods := kube.ListPods()
+			return float64(len(meshPods))
+		})
+
+	/*defaultMetricsStore.TrafficTargetCount = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: metricsRootNamespace,
+			Subsystem: "resource",
+			Name:      "traffic_target_count",
+			Help:      "Represents the number of TrafficTargets in the mesh",
+		}, func() float64 {
+			monitoredNamespaces, err := kube.ListMonitoredNamespaces()
+			if err != nil {
+				log.Error().Err(err).Msgf("failed to list monitored namespaces")
+			}
+			return float64(len(monitoredNamespaces))
+		})
+
+	defaultMetricsStore.TrafficSplitCount = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: metricsRootNamespace,
+			Subsystem: "resource",
+			Name:      "traffic_split_count",
+			Help:      "Represents the number of TrafficSplits in the mesh",
+		}, func() float64 {
+			monitoredNamespaces, err := kube.ListMonitoredNamespaces()
+			if err != nil {
+				log.Error().Err(err).Msgf("failed to list monitored namespaces")
+			}
+			return float64(len(monitoredNamespaces))
+		})
+
+	defaultMetricsStore.HTTPRouteGroupCount = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: metricsRootNamespace,
+			Subsystem: "resource",
+			Name:      "http_route_group_count",
+			Help:      "Represents the number of HTTPRouteGroups in the mesh",
+		}, func() float64 {
+			monitoredNamespaces, err := kube.ListMonitoredNamespaces()
+			if err != nil {
+				log.Error().Err(err).Msgf("failed to list monitored namespaces")
+			}
+			return float64(len(monitoredNamespaces))
+		})
+
+	defaultMetricsStore.TCPRouteCount = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: metricsRootNamespace,
+			Subsystem: "resource",
+			Name:      "tcp_route_count",
+			Help:      "Represents the number of TCPRoutes in the mesh",
+		}, func() float64 {
+			monitoredNamespaces, err := kube.ListMonitoredNamespaces()
+			if err != nil {
+				log.Error().Err(err).Msgf("failed to list monitored namespaces")
+			}
+			return float64(len(monitoredNamespaces))
+		})*/
 
 	/*
 	 * Proxy metrics
@@ -178,6 +300,8 @@ func init() {
 		[]string{"err_code"},
 	)
 	defaultMetricsStore.registry = prometheus.NewRegistry()
+
+	defaultMetricsStore.kube = kube
 }
 
 // Start store
@@ -199,3 +323,38 @@ func (ms *MetricsStore) Handler() http.Handler {
 		promhttp.HandlerFor(ms.registry, promhttp.HandlerOpts{}),
 	)
 }
+
+/*func (ms *MetricsStore) metricsHandler(meshClient *resourcecounter.ResourceCountClient) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// update resource metrics
+		StartResourceCount(meshClient)
+		promhttp.HandlerFor(ms.registry, promhttp.HandlerOpts{})
+	})
+}
+
+func StartResourceCount(r *resourcecounter.ResourceCountClient) {
+	// get monitored namespaces
+	monitoredNamespaces, err := r.KubeController.ListMonitoredNamespaces()
+	if err != nil {
+		log.Error().Err(err).Msgf("failed to list monitored namespaces")
+	}
+	DefaultMetricsStore.NamespaceCount.Set(float64(len(monitoredNamespaces)))
+
+	monitoredPods := r.KubeController.ListPods()
+	DefaultMetricsStore.PodCount.Set(float64(len(monitoredPods)))
+
+	monitoredServices := r.KubeController.ListServices()
+	DefaultMetricsStore.ServiceCount.Set(float64(len(monitoredServices)))
+
+	trafficTargets := r.MeshSpec.ListTrafficTargets()
+	DefaultMetricsStore.TrafficTargetCount.Set(float64(len(trafficTargets)))
+
+	trafficSplits := r.MeshSpec.ListTrafficSplits()
+	DefaultMetricsStore.TrafficSplitCount.Set(float64(len(trafficSplits)))
+
+	httpTrafficSpecs := r.MeshSpec.ListHTTPTrafficSpecs()
+	DefaultMetricsStore.HTTPRouteGroupCount.Set(float64(len(httpTrafficSpecs)))
+
+	tcpTrafficSpecs := r.MeshSpec.ListTCPTrafficSpecs()
+	DefaultMetricsStore.TCPRouteCount.Set(float64(len(tcpTrafficSpecs)))
+}*/

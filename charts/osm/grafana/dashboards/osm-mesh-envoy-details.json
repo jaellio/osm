@@ -73,7 +73,7 @@
       "pluginVersion": "7.0.1",
       "targets": [
         {
-          "expr": "sum(osm_k8s_api_event_count{type=\"namespace-added\", source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name) OR on() vector(0) - sum(osm_k8s_api_event_count{type=\"namespace-deleted\", source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name) OR on() vector(0)",
+          "expr": "sum(osm_resource_namespace_count{source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name)",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -126,7 +126,7 @@
       "pluginVersion": "7.0.1",
       "targets": [
         {
-          "expr": "sum(osm_k8s_api_event_count{type=\"service-added\", source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name) OR on() vector(0) - sum(osm_k8s_api_event_count{type=\"service-deleted\", source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name) OR on() vector(0)",
+          "expr": "sum(osm_resource_service_count{source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name)",
           "instant": true,
           "interval": "",
           "legendFormat": "{{source_pod_name}}",
@@ -179,7 +179,7 @@
       "pluginVersion": "7.0.1",
       "targets": [
         {
-          "expr": "sum(osm_k8s_api_event_count{type=\"pod-added\", source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name) OR on() vector(0) - sum(osm_k8s_api_event_count{type=\"pod-deleted\", source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name) OR on() vector(0)",
+          "expr": "sum(osm_resource_pod_count{source_pod_name=~\"$osm_controller_instance\"}) by (source_pod_name)",
           "format": "time_series",
           "instant": true,
           "interval": "",
