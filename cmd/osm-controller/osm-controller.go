@@ -174,7 +174,7 @@ func main() {
 	}
 
 	// Start the default metrics store
-	startMetricsStore(k8sClient)
+	startMetricsStore(k8sClient, meshSpec)
 
 	if cfg.GetFeatureFlags().EnableMulticlusterMode {
 		log.Info().Msgf("Bootstrapping OSM multicluster gateway")
@@ -291,8 +291,8 @@ func main() {
 }
 
 // Start the metric store, register the metrics OSM will expose
-func startMetricsStore(kube k8s.Controller) {
-	metricsstore.InitializeMetricStore(kube)
+func startMetricsStore(kube k8s.Controller, smi smi.MeshSpec) {
+	metricsstore.InitializeMetricStore(kube, smi)
 	metricsstore.DefaultMetricsStore.Start(
 		metricsstore.DefaultMetricsStore.K8sAPIEventCounter,
 		metricsstore.DefaultMetricsStore.NamespaceCount,
