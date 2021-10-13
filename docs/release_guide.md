@@ -21,15 +21,17 @@ Once an RC has been found to be stable, cut a release tagged `vX.Y.Z` using the 
 - [Release Guide](#release-guide)
   - [Release Candidates](#release-candidates)
   - [Create a release branch](#create-a-release-branch)
+  - [Create and push the pre-release Git tag](#create-and-push-the-pre-release-git-tag)
   - [Update release branch with patches and versioning changes](#update-release-branch-with-patches-and-versioning-changes)
-  - [Create and push a Git tag](#create-and-push-a-git-tag)
+  - [Create and push the release Git tag](#create-and-push-the-release-git-tag)
   - [Add release notes](#add-release-notes)
-  - [Update docs site](#update-docs-site)
-    - [Update API reference documentation](#update-api-reference-documentation)
-    - [Update error code documentation](#update-error-code-documentation)
+  - [Update documentation and docs.openservicemesh.io website](#update-documentation-and-docsopenservicemeshio-website)
+    - [1. Create the release specific branch in osm-docs repo](#1-create-the-release-specific-branch-in-osm-docs-repo)
+    - [2. Update version references to the latest version for the given Major.Minor version](#2-update-version-references-to-the-latest-version-for-the-given-majorminor-version)
+    - [3. Update API reference documentation](#3-update-api-reference-documentation)
+    - [4. Update error code documentation](#4-update-error-code-documentation)
   - [Announce the new release](#announce-the-new-release)
   - [Make version changes on main branch](#make-version-changes-on-main-branch)
-  - [Make version changes on docs.openservicemesh.io](#make-version-changes-on-docsopenservicemeshio)
   - [Workflow Diagram](#workflow-diagram)
 
 ## Create a release branch
@@ -81,8 +83,10 @@ Create a new commit on the patch branch to update the hardcoded version informat
 * The control plane image digests  defined by `OpenServiceMesh.image.digest` for images in [charts/osm/values.yaml](/charts/osm/values.yaml) from the image digests obtained from the Pre-release workflow. For example, if the osm-controller image digest is `sha256:eb194138abddbe271d42b290489917168a6a891a3dabb575de02c53f13879bee`, update the value of `OpenServiceMesh.image.digest.osmController` to `sha256:eb194138abddbe271d42b290489917168a6a891a3dabb575de02c53f13879bee`.
 * Replace the `latest-main` tag with the release version tag for all images throughout the repo, e.g. `v0.4.0`. This includes updating the image references in `charts/osm` and `docs/example/manifests` folders.
 * The chart and app version in [charts/osm/Chart.yaml](/charts/osm/Chart.yaml) to the release version.
+  - The format of `version` is `X.Y.Z` and the format of `appVersion` is `vX.Y.Z`
 * The Helm chart [README.md](/charts/osm/README.md)
-  - Necessary changes should be made automatically by running `make chart-readme`
+  - Update the badges for `AppVersion` and `Version` in [README.md.gotmpl](/charts/osm/README.md.gotmpl) to the release version. Skip this step if the release is a release candidate (RC)
+  - The changes to [README.md](/charts/osm/README.md) should be made automatically by running `make chart-readme`
 
 Once patches and version information have been updated on the patch branch off of the release branch, create a pull request from the patch branch to the release branch. When creating your pull request, generate the release checklist for the description by adding the following to the PR URL: `?expand=1&template=release_pull_request_template.md`. Alternatively, copy the raw template from [release_pull_request_template.md](/.github/PULL_REQUEST_TEMPLATE/release_pull_request_template.md).
 
