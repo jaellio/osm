@@ -66,13 +66,15 @@ func (cm *CertManager) issue(cn certificate.CommonName, validityPeriod time.Dura
 		// TODO(#3962): metric might not be scraped before process restart resulting from this error
 		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrDecodingPEMCert)).
 			Msg("Error decoding Root Certificate's PEM")
+		return nil, err
 	}
 
 	rsaKeyRoot, err := certificate.DecodePEMPrivateKey(cm.ca.GetPrivateKey())
 	if err != nil {
 		// TODO(#3962): metric might not be scraped before process restart resulting from this error
 		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrDecodingPEMPrivateKey)).
-			Msg("Error decoding Root Certificate's Private Key PEM ")
+			Msg("Error decoding Root Certificate's Private Key PEM")
+		return nil, err
 	}
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, x509Root, &certPrivKey.PublicKey, rsaKeyRoot)
