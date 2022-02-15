@@ -1,0 +1,115 @@
+apiVersion: config.openservicemesh.io/v1alpha1
+kind: MeshConfig
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"config.openservicemesh.io/v1alpha1","kind":"MeshConfig","metadata":{"annotations":{},"creationTimestamp":"2022-01-10T22:23:22Z","generation":4,"name":"osm-mesh-config","namespace":"kube-system","resourceVersion":"16075","uid":"4d8cb4d6-fed4-4574-8ce9-0b406ed254a4"},"spec":{"certificate":{"certKeyBitSize":2048,"ingressGateway":{"secret":{"name":"osm-contour-envoy-client-cert","namespace":"contour"},"subjectAltNames":["osm-contour-envoy.contour.cluster.local"],"validityDuration":"24h"},"serviceCertValidityDuration":"24h"},"featureFlags":{"enableAsyncProxyServiceMapping":false,"enableEgressPolicy":true,"enableEnvoyActiveHealthChecks":false,"enableIngressBackendPolicy":true,"enableMulticlusterMode":false,"enableRetryPolicy":false,"enableSnapshotCacheMode":false,"enableWASMStats":true},"observability":{"enableDebugServer":true,"osmLogLevel":"info","tracing":{"enable":false}},"sidecar":{"configResyncInterval":"0s","enablePrivilegedInitContainer":false,"envoyImage":"mcr.microsoft.com/oss/envoyproxy/envoy:v1.19.1","envoyWindowsImage":"envoyproxy/envoy-windows@sha256:c904fda95891ebbccb9b1f24c1a9482c8d01cbca215dd081fc8c8db36db85f85","initContainerImage":"mcr.microsoft.com/oss/openservicemesh/init:v0.11.1","logLevel":"error","resources":{}},"traffic":{"enableEgress":true,"enablePermissiveTrafficPolicyMode":true,"inboundExternalAuthorization":{"enable":false,"failureModeAllow":false,"statPrefix":"inboundExtAuthz","timeout":"1s"},"inboundPortExclusionList":[],"outboundIPRangeExclusionList":[],"outboundPortExclusionList":[],"useHTTPSIngress":false}}}
+  creationTimestamp: "2022-01-10T22:23:22Z"
+  generation: 4
+  name: osm-mesh-config
+  namespace: kube-system
+  resourceVersion: "18034"
+  uid: 4d8cb4d6-fed4-4574-8ce9-0b406ed254a4
+spec:
+  certificate:
+    certKeyBitSize: 2048
+    ingressGateway:
+      secret:
+        name: osm-contour-envoy-client-cert
+        namespace: contour
+      subjectAltNames:
+      - osm-contour-envoy.contour.cluster.local
+      validityDuration: 24h
+    serviceCertValidityDuration: 24h
+  featureFlags:
+    enableAsyncProxyServiceMapping: false
+    enableEgressPolicy: true
+    enableEnvoyActiveHealthChecks: false
+    enableIngressBackendPolicy: true
+    enableMulticlusterMode: false
+    enableRetryPolicy: false
+    enableSnapshotCacheMode: false
+    enableWASMStats: true
+  observability:
+    enableDebugServer: true
+    osmLogLevel: info
+    tracing:
+      enable: false
+  sidecar:
+    configResyncInterval: 0s
+    enablePrivilegedInitContainer: false
+    envoyImage: mcr.microsoft.com/oss/envoyproxy/envoy:v1.19.1
+    envoyWindowsImage: envoyproxy/envoy-windows@sha256:c904fda95891ebbccb9b1f24c1a9482c8d01cbca215dd081fc8c8db36db85f85
+    initContainerImage: mcr.microsoft.com/oss/openservicemesh/init:v0.11.1
+    logLevel: error
+    resources: {}
+  traffic:
+    enableEgress: true
+    enablePermissiveTrafficPolicyMode: true
+    inboundExternalAuthorization:
+      enable: false
+      failureModeAllow: false
+      statPrefix: inboundExtAuthz
+      timeout: 1s
+    inboundPortExclusionList: []
+    outboundIPRangeExclusionList: []
+    outboundPortExclusionList: []
+    useHTTPSIngress: false
+
+apiVersion: config.openservicemesh.io/v1alpha1
+kind: MeshConfig
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"config.openservicemesh.io/v1alpha1","kind":"MeshConfig","metadata":{"annotations":{},"creationTimestamp":"2022-01-10T22:23:22Z","generation":4,"name":"osm-mesh-config","namespace":"kube-system","resourceVersion":"18034","uid":"4d8cb4d6-fed4-4574-8ce9-0b406ed254a4"},"spec":{"certificate":{"certKeyBitSize":2048,"serviceCertValidityDuration":"24h"},"featureFlags":{"enableAsyncProxyServiceMapping":false,"enableEgressPolicy":true,"enableEnvoyActiveHealthChecks":false,"enableIngressBackendPolicy":true,"enableMulticlusterMode":false,"enableRetryPolicy":false,"enableSnapshotCacheMode":false,"enableWASMStats":true},"observability":{"enableDebugServer":true,"osmLogLevel":"info","tracing":{"enable":false}},"sidecar":{"configResyncInterval":"0s","enablePrivilegedInitContainer":false,"envoyImage":"mcr.microsoft.com/oss/envoyproxy/envoy:v1.19.1","envoyWindowsImage":"envoyproxy/envoy-windows@sha256:c904fda95891ebbccb9b1f24c1a9482c8d01cbca215dd081fc8c8db36db85f85","initContainerImage":"mcr.microsoft.com/oss/openservicemesh/init:v0.11.1","logLevel":"error","resources":{}},"traffic":{"enableEgress":true,"enablePermissiveTrafficPolicyMode":true,"inboundExternalAuthorization":{"enable":false,"failureModeAllow":false,"statPrefix":"inboundExtAuthz","timeout":"1s"},"inboundPortExclusionList":[],"outboundIPRangeExclusionList":[],"outboundPortExclusionList":[],"useHTTPSIngress":false}}}
+  creationTimestamp: "2022-01-10T22:23:22Z"
+  generation: 5
+  name: osm-mesh-config
+  namespace: kube-system
+  resourceVersion: "18290"
+  uid: 4d8cb4d6-fed4-4574-8ce9-0b406ed254a4
+spec:
+  certificate:
+    certKeyBitSize: 2048
+    ingressGateway:
+      secret:
+        name: osm-contour-envoy-client-cert
+        namespace: contour
+      subjectAltNames:
+      - osm-contour-envoy.contour.cluster.local
+      validityDuration: 24h
+    serviceCertValidityDuration: 24h
+  featureFlags:
+    enableAsyncProxyServiceMapping: false
+    enableEgressPolicy: true
+    enableEnvoyActiveHealthChecks: false
+    enableIngressBackendPolicy: true
+    enableMulticlusterMode: false
+    enableRetryPolicy: false
+    enableSnapshotCacheMode: false
+    enableWASMStats: true
+  observability:
+    enableDebugServer: true
+    osmLogLevel: info
+    tracing:
+      enable: false
+  sidecar:
+    configResyncInterval: 0s
+    enablePrivilegedInitContainer: false
+    envoyImage: mcr.microsoft.com/oss/envoyproxy/envoy:v1.19.1
+    envoyWindowsImage: envoyproxy/envoy-windows@sha256:c904fda95891ebbccb9b1f24c1a9482c8d01cbca215dd081fc8c8db36db85f85
+    initContainerImage: mcr.microsoft.com/oss/openservicemesh/init:v0.11.1
+    logLevel: error
+    resources: {}
+  traffic:
+    enableEgress: true
+    enablePermissiveTrafficPolicyMode: true
+    inboundExternalAuthorization:
+      enable: false
+      failureModeAllow: false
+      statPrefix: inboundExtAuthz
+      timeout: 1s
+    inboundPortExclusionList: []
+    outboundIPRangeExclusionList: []
+    outboundPortExclusionList: []
+    useHTTPSIngress: false

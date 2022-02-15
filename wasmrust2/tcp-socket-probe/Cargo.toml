@@ -1,0 +1,17 @@
+[package]
+name = "tcp-socket-probe"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "tcpsocketproberust"
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+opt-level = 's'
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+proxy-wasm =  "0.1.0"

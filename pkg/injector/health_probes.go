@@ -28,6 +28,9 @@ type healthProbe struct {
 	// isHTTP corresponds to an httpGet probe with a scheme of HTTP or undefined.
 	// This helps inform what kind of Envoy config to add to the pod.
 	isHTTP bool
+	// isTCP corresponds to an tcpSocket probe
+	// This helps inform if a WASM filter needs to be a added in the Envoy config.
+	isTCPSocket bool
 }
 
 // healthProbes is to serve as an indication whether the given healthProbe has been rewritten
@@ -80,7 +83,15 @@ func rewriteProbe(probe *corev1.Probe, probeType, path string, port int32, conta
 			newPath = probe.HTTPGet.Path
 		}
 	} else if probe.TCPSocket != nil {
-		definedPort = &probe.TCPSocket.Port
+		// Change the TCPSocket probe into a HttpGet probe
+		originalProbe.isTCPSocket = true
+		probe.HTTPGet = &corev1.HTTPGetAction{
+			Port: probe.TCPSocket.Port,
+			Path: path,
+		}
+		newPath = probe.HTTPGet.Path
+		definedPort = &probe.HTTPGet.Port
+		probe.TCPSocket = nil
 	} else {
 		return nil
 	}

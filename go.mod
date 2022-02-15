@@ -45,6 +45,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
+	github.com/tetratelabs/proxy-wasm-go-sdk v0.16.0
 	gomodules.xyz/jsonpatch/v2 v2.2.0
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.27.1
@@ -241,7 +242,6 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tdakkota/asciicheck v0.0.0-20200416190851-d7f85be797a2 // indirect
 	github.com/tetafro/godot v0.4.9 // indirect
-	github.com/tetratelabs/proxy-wasm-go-sdk v0.16.0
 	github.com/timakin/bodyclose v0.0.0-20190930140734-f7f2e9bca95e // indirect
 	github.com/tomarrell/wrapcheck v0.0.0-20200807122107-df9e8bcb914d // indirect
 	github.com/tommy-muehle/go-mnd v1.3.1-0.20200224220436-e6f9a994e8fa // indirect

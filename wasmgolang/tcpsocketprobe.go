@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm"
 	"github.com/tetratelabs/proxy-wasm-go-sdk/proxywasm/types"
@@ -24,46 +23,48 @@ func (*vmContext) NewPluginContext(contextID uint32) types.PluginContext {
 
 type pluginContext struct {
 	types.DefaultPluginContext
-	port string
 }
 
 func (ctx *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
-	return &httpContext{port: ctx.port}
-}
-
-func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
-	data, err := proxywasm.GetPluginConfiguration()
-	if err != nil {
-		proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
+	return &httpHeaders{
+		contextID: contextID,
 	}
-	ctx.port = string(data)
+}
+
+/*func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
+	//data, err := proxywasm.GetPluginConfiguration()
+	//if err != nil {
+	//	proxywasm.LogCriticalf("error reading plugin configuration: %v", err)
+	//}
+	ctx.port = "14001"
 	return types.OnPluginStartStatusOK
-}
+}*/
 
-type httpContext struct {
+type httpHeaders struct {
 	types.DefaultHttpContext
-	port string
+	contextID uint32
 }
 
-func (ctx *httpContext) OnHttpRequestHeaders(_ int, _ bool) types.Action {
-	if _, err := proxywasm.GetHttpRequestHeader("content-length"); err != nil {
+func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	/*if _, err := proxywasm.GetHttpRequestHeader("content-length"); err != nil {
 		if err := proxywasm.SendHttpResponse(400, nil, []byte("content must be provided"), -1); err != nil {
 			panic(err)
 		}
 		return types.ActionPause
-	}
+	}*/
 
-	ctx.handleAppProbeTCPSocket()
+	handleAppProbeTCPSocket()
 	return types.ActionPause
 }
 
-func (ctx *httpContext) handleAppProbeTCPSocket() {
-	d := &net.Dialer{
-		//LocalAddr: "localhost", // Need to specify?
-		Timeout: 1 * time.Second,
-	}
-	// TODO(jaellio): change from local host and use pod id
-	conn, err := d.Dial("tcp", fmt.Sprintf("localhost:%s", ctx.port))
+func handleAppProbeTCPSocket() {
+	//d := &net.Dialer{
+	//LocalAddr: "localhost", // Need to specify?
+	//	Timeout: 1 * time.Second,
+	//}
+	proxywasm.LogCritical("handleAppProbeTCPSocket")
+	conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:3306"))
+	proxywasm.LogCriticalf("handleAppProbeTCPSocket after dial %v", err)
 	if err != nil {
 		if err := proxywasm.SendHttpResponse(http.StatusInternalServerError, nil, []byte("content must be provided"), -1); err != nil {
 			panic(err)
@@ -74,4 +75,9 @@ func (ctx *httpContext) handleAppProbeTCPSocket() {
 			panic(err)
 		}
 	}
+}
+
+// Override types.DefaultHttpContext.
+func (ctx *httpHeaders) OnHttpStreamDone() {
+	proxywasm.LogInfof("%d finished", ctx.contextID)
 }

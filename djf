@@ -1,0 +1,1856 @@
+[33mcommit 718517c2806b2a8cab2f3729ca0930d90428b999[m[33m ([m[1;36mHEAD -> [m[1;32mnewVersionNote[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;31mopenservicemesh/main[m[33m, [m[1;32mmain[m[33m)[m
+Author: Jackie Elliott <64559656+jaellio@users.noreply.github.com>
+Date:   Fri Dec 17 15:19:15 2021 -0800
+
+    feat(cli): add remote version to osm version output (#4395)
+    
+    Adds remote version to osm version CLI command output. By default
+    the CLI and Mesh version will be included in the output. A remote
+    flag (by default set to true) can be set to false to only output
+    the CLI version. If there is any failure getting the mesh version,
+    the CLI version is printed along with the failure message.
+    
+    Part of #4289
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 75fac94887d9d2e971a571d08f4d469326c56648[m[33m ([m[1;32mupgradeCliWarning[m[33m)[m
+Merge: 01013d76 b1212893
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Dec 16 12:33:36 2021 -0600
+
+    Merge pull request #4390 from michelleN/steppingdown
+    
+    ref(*): stepping down as maintainer
+
+[33mcommit 01013d76364596003e73945755a71a092791732e[m
+Author: mudit singh <mudit.singh@india.nec.com>
+Date:   Sun Dec 12 11:35:22 2021 +0530
+
+    Corrected spelling mistake (#4392)
+    
+    Fixed spelling
+    
+    Signed-off-by: mudit singh <mudit.singh@india.nec.com>
+
+[33mcommit b12128933136887dfb8011d774eff5639f79496a[m
+Author: Michelle Noorali <michelle.noorali@fermyon.com>
+Date:   Wed Dec 8 16:26:30 2021 -0500
+
+    ref(*): stepping down as maintainer
+    
+    It has been a privilege working on this project and with
+    this group of people. Due to time constraints with my current
+    job and responsibilities, I'll be unable to continue my role
+    as a core maintainer on this project. Thank you for the
+    opportunity.
+    
+    Best,
+    
+    Michelle Noorali
+    
+    Signed-off-by: Michelle Noorali <michelle.noorali@fermyon.com>
+
+[33mcommit 98aef6dd0e464ae19819210085e6f24f99c5efae[m
+Merge: be2ac0f4 5da4e398
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Dec 9 09:13:21 2021 -0600
+
+    Merge pull request #4386 from trstringer/thstring/config-upgrade-fix
+    
+    Add MeshConfig upgrade when upgrading a mesh
+
+[33mcommit 5da4e398979634680588625c104888ba27bee740[m
+Author: Thomas Stringer <thstring@microsoft.com>
+Date:   Wed Dec 8 12:47:01 2021 -0500
+
+    rename environment variables for images
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+
+[33mcommit 95469049aab365c975e959ad0bb3344c032372ac[m
+Author: Thomas Stringer <thstring@microsoft.com>
+Date:   Tue Dec 7 13:42:12 2021 -0500
+
+    remove image defaults from preset mesh config and CRD and allow the
+    ability to specify the images through environment variables
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+
+[33mcommit be2ac0f47f111d679600dd8e1d1ac18d5170fb07[m
+Merge: 8dccabbf 0faa1912
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Tue Dec 7 10:12:39 2021 -0600
+
+    Merge pull request #4387 from jaellio/fixNamespaceAdd
+    
+    fix(cli): set sidecar injection annotation to disabled
+
+[33mcommit 0faa1912e04f7372e7244bd1a8877f3f9da80df1[m[33m ([m[1;31morigin/fixNamespaceAdd[m[33m, [m[1;32mfixNamespaceAdd[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Thu Dec 2 21:07:17 2021 -0500
+
+    fix(cli): set sidecar injection annotation to disabled
+    
+    Modifies the patch command on `osm namespace add --disable-sidecar
+    -injection` to set the sidecar injection annotation to "disabled"
+    instead of null. Patching the annotation key with a null value
+    should have removed the annotation if it existed or had no effect
+    if the annotation key did not exist. Currently, when the
+    sidecar injection annotation does not exist on the namespace, the
+    patch mentioned above adds te annotation with a value of an empty
+    string. This result is errors in the osm-injector when pods are
+    added to the namespace.
+    
+    This PR also includes a change to notify the user if the namespace
+    being added is already monitored by the mesh.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 8dccabbf98d4187d7072b2145b1e280d45303f6d[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Thu Dec 2 22:32:01 2021 +0530
+
+    injector: rename iptables chains for clarity (#4379)
+    
+    Renames the iptables chains and prefixes the
+    custom chains with `OSM_` to indicate these
+    chains are owned by OSM.
+    
+    It renames the custom chains as follows:
+    PROXY_INBOUND -> OSM_PROXY_INBOUND
+    PROXY_OUTPUT -> OSM_PROXY_OUTBOUND
+    PROXY_IN_REDIRECT -> OSM_PROXY_IN_REDIRECT
+    PROXY_REDIRECT -> OSM_PROXY_OUT_REDIRECT
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 6d99e8aad055b4bc336febac56cf83db2e6be591[m
+Merge: fe85f60d a1718afe
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Mon Nov 29 10:06:17 2021 -0600
+
+    Merge pull request #4376 from nojnhuh/k8s-controller-metrics
+    
+    ref(k8s): remove IsMetricsEnabled from Controller
+
+[33mcommit a1718afeb698acf71eb601d236b6c1da67a56e5f[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Wed Nov 24 14:13:20 2021 -0600
+
+    ref(k8s): remove IsMetricsEnabled from Controller
+    
+    The `IsMetricsEnabled` method on the `k8s.Controller` interface does not
+    depend on any implementation details, only the `*v1.Pod` passed to it.
+    Making it a plain function removes this unnecessary dependency on
+    setting up a `k8s.Controller`.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit fe85f60d38fffeb65cb47abfc5dbdbf4d273e91c[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Thu Nov 25 00:37:37 2021 +0530
+
+    injector: make iptable rules idempotent (#4373)
+    
+    Makes the iptable rules idempotent by using
+    `iptables-restore --noflush`. With this change,
+    the init-container can be executed multiple times
+    without any side effects. The `--noflush` option
+    ensures the exising rules do not get flushed
+    during `iptables-restore`, which would otherwise
+    compromise the security.
+    
+    Also simplifies the init container test to avoid
+    redundancy.
+    
+    Resolves #4307
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 332b52b0d1b9d1c426964b5f2378b2b508ceef94[m
+Merge: 5229967b 6d3ff70b
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Fri Nov 19 15:39:08 2021 -0600
+
+    Merge pull request #4372 from nojnhuh/k8s-controller
+    
+    ref(k8s): remove K8sServiceToMeshServices from Controller
+
+[33mcommit 6d3ff70b11b6911430f2a5b80c397b34e3cb12ec[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Thu Nov 18 16:24:32 2021 -0600
+
+    ref(k8s): remove K8sServiceToMeshServices from Controller
+    
+    This change removes the `K8sServiceToMeshServices` method from the k8s
+    `Controller` interface. Since `K8sServiceToMeshServices` only relies on
+    the `GetEndpoints` method already in the interface and nothing specific
+    to the unexported `client` implementation, it has been converted to a
+    function that accepts a `Controller`.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 5229967b5c8dbb193f006cd1bd81d57d11367afd[m[33m ([m[1;32mosmLatestVerison[m[33m)[m
+Merge: a71e401e f4170981
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Wed Nov 17 15:24:01 2021 -0600
+
+    Merge pull request #4370 from jaellio/fixHandleCertChangeTest
+    
+    test(ingress): increase timeout for TestHandleCertificateChange
+
+[33mcommit a71e401ee61d324578d26ac773638733b7d8f96f[m
+Merge: 81b52654 9926bc6e
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Wed Nov 17 10:53:28 2021 -0600
+
+    Merge pull request #4369 from trstringer/thstring/bug-report-control-plane-previous
+    
+    Get bug-report previous control plane logs if containers were restarted
+
+[33mcommit f417098113fd42095806f361b3747749a51f076c[m[33m ([m[1;31morigin/fixHandleCertChangeTest[m[33m, [m[1;32mfixHandleCertChangeTest[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Tue Nov 16 17:00:21 2021 -0800
+
+    fix(ingress): increase timeout for TestHandleCertificateChange
+    
+    Adds a delay for subscription time and adds a delay after
+    publishing an event for `maxTimeForEventToBePublished`. The
+    original 2s delay for the secret to be created after publishing a
+    mesh config update event included the time to publish the event
+    and the time to issue a certificate. The max time alone for
+    publishing an event is 2s, so in some cases, this unit test may
+    have sexceeded the timeout.
+    
+    Resolves #4366
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 9926bc6e09832b672a50da0ab8f3562f158496ab[m
+Author: Thomas Stringer <thstring@microsoft.com>
+Date:   Wed Nov 17 09:00:27 2021 -0500
+
+    add ability for bug-report to get previous logs for control plane containers if they have been restarted
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+
+[33mcommit 81b5265489ee890b976e999b9a4ef96d25b23c70[m
+Author: Thomas Stringer <thstring@microsoft.com>
+Date:   Tue Nov 16 22:31:55 2021 -0500
+
+    Add bug-report ability to collect control plane logs (#4365)
+    
+    Adds bug-report ability to collect control plane logs
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+
+[33mcommit e5b275415412fd4a0b0360b702ca6cddf1cb652f[m
+Merge: 666b0e83 4cf96878
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Tue Nov 16 12:16:56 2021 -0600
+
+    Merge pull request #4363 from nojnhuh/fix-image-scan
+    
+    [backport] fix(ci): fix image scan
+
+[33mcommit 666b0e834492b016e5506a7b63e7419b46580d0f[m
+Merge: 0fcedaa7 2227135b
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Tue Nov 16 12:16:32 2021 -0600
+
+    Merge pull request #4364 from nojnhuh/upgrade
+    
+    fix(e2e): update upgrade test
+
+[33mcommit 2227135b51b6b1de8a0f4a76ab8e9e549c7da4ba[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Mon Nov 15 15:02:29 2021 -0600
+
+    fix(e2e): update upgrade test
+    
+    Now that the upgrade test is basing off of v1.0.0-rc.2, we need to
+    install with values under `osm.*` instead of `OpenServiceMesh.*`.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 4cf968783b1b0350da2e07816222c0c228a5c6d4[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Fri Nov 12 10:42:52 2021 -0600
+
+    fix(ci): fix image scan
+    
+    This change adds the `version` job as a dependency of the `imagescan`
+    job in the pre-release workflow which is required for
+    `${{ needs.version.outputs.version }}` to correctly evaluate.
+    
+    The base image of the `init` container has also been updated to fix a
+    vulnerability.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 0fcedaa7024b8fb8481ca60dacf5ce2066702d3d[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Mon Nov 15 22:09:41 2021 +0530
+
+    injector: skip injection when pod belongs to host network (#4360)
+    
+    Skips sidecar injection for pods that belong to the host
+    network. Without this, the iptable rules installed
+    will result in routing failures in the host, rendering
+    the cluster unusable.
+    
+    Part of #4359
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit f05fb690757f68645e4ca8550062923aa0c0b32d[m
+Merge: 626967b4 8e72beb1
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Nov 11 14:08:45 2021 -0600
+
+    Merge pull request #4354 from shalier/rmMaxAvgUpdateTime
+    
+    fix(charts/osm/grafana/dashboards): remove avg and max envoy update time metrics from grafana dashboard
+
+[33mcommit 626967b4a098c5d652951f6d0f685e16a65b28ce[m
+Author: Sanya Kochhar <42152676+SanyaKochhar@users.noreply.github.com>
+Date:   Thu Nov 11 11:06:08 2021 -0500
+
+    fix(init): set init container level security context (#4346)
+    
+    Signed-off-by: Sanya Kochhar <kochhars@microsoft.com>
+
+[33mcommit acb6ca8c4244b9f867429e7a2d989bd68f718e60[m
+Merge: 7297153a e6784a24
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Nov 10 23:08:23 2021 -0800
+
+    Merge pull request #4350 from trstringer/thstring/fix-validator-typo
+    
+    Fix typos in webhook creators
+
+[33mcommit 8e72beb12766800fe0a48c200376631fe5d9ea4f[m
+Author: Shalier Xia <shalierxia@microsoft.com>
+Date:   Wed Nov 10 16:38:41 2021 -0800
+
+    Remove avg and max envoy update time metrics from grafana dashboard
+    and resolves #3987
+    
+    Signed-off-by: Shalier Xia <shalierxia@microsoft.com>
+
+[33mcommit e6784a24ad60bc3eae1d49c6eea05c621c2b6bf8[m[33m ([m[1;31mtrstringer/thstring/fix-validator-typo[m[33m)[m
+Author: Thomas Stringer <thstring@microsoft.com>
+Date:   Wed Nov 10 15:14:40 2021 -0500
+
+    fix failure typos in webhook creators
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+
+[33mcommit 7297153a4c6339b60b7cc0a566e6febd49a7895f[m
+Author: Bridget Kromhout <bridget@kromhout.org>
+Date:   Tue Nov 9 14:18:21 2021 -0600
+
+    Typo fix for dev guide README (#4347)
+    
+    * Typo fix
+    
+    Signed-off-by: Bridget Kromhout <bridget@kromhout.org>
+    
+    * Update docs/development_guide/README.md
+    
+    Co-authored-by: Jon Huhn <nojnhuh@users.noreply.github.com>
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+    
+    Co-authored-by: Delyan Raychev <delyan.raychev@microsoft.com>
+    Co-authored-by: Jon Huhn <nojnhuh@users.noreply.github.com>
+
+[33mcommit aa6c60f633370910c9eaec6840efb893e3451123[m
+Merge: 701d1c37 29e05744
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Tue Nov 9 10:07:29 2021 -0800
+
+    Merge pull request #4348 from mudit-01/patch-1
+    
+    Updated figure link
+
+[33mcommit 29e05744f669d2a7d422d394fcdf9f5f9bcb1436[m
+Author: mudit singh <mudit.singh@india.nec.com>
+Date:   Tue Nov 9 23:24:21 2021 +0530
+
+    Updated figure link
+    
+    OSM Components & Interactions figure link address
+    
+    Signed-off-by: mudit singh <mudit.singh@india.nec.com>
+
+[33mcommit 701d1c37fb0391afb89a22fe73d0dbba995d5549[m
+Author: Shalier Xia <69616256+shalier@users.noreply.github.com>
+Date:   Mon Nov 8 14:44:06 2021 -0800
+
+    feat(hpa): Adds memory targetAverageUtilization (#4217)
+    
+    Allows HPA to react to memory utilization(not only CPU)
+    
+    Signed-off-by: Shalier Xia <shalierxia@microsoft.com>
+
+[33mcommit 52e13ade170c101d072b27dc370143ac4ce99b6b[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Mon Nov 8 11:51:41 2021 -0800
+
+    messaging: trigger proxy update when feature flag is toggled (#4345)
+    
+    Triggers a proxy update event when feature flags are modified.
+    The event is scoped to any feature flag because all the feature
+    flags are associated with proxy config updates.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 903f36cde7ae2848c045ef68f7e5018f5dc8ff0e[m
+Merge: 5c7931bb 55bc0aee
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Fri Nov 5 10:37:03 2021 -0500
+
+    Merge pull request #4336 from jaellio/fixGrafanaDescriptions
+    
+    fix(grafana): add version to dashboard descriptions
+
+[33mcommit 5c7931bb598fcdc6360417ec1429ad6247846574[m
+Merge: a4090969 ad3b63e3
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Fri Nov 5 03:19:04 2021 -0700
+
+    Merge pull request #4341 from nojnhuh/upgrade
+    
+    fix(upgrade): handle removed values
+
+[33mcommit ad3b63e3c1e7a2a976395cfa932e01faf39ac421[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Wed Nov 3 17:10:43 2021 -0500
+
+    fix(upgrade): handle removed values
+    
+    Currently, upgrading OSM with `osm mesh upgrade` fails when the newer
+    chart version removes or renames values from the installed chart because
+    values.schema.json defines `"additionalProperties": false` on each
+    object and `osm mesh upgrade` uses all the values from the installed
+    chart.
+    
+    Now, the `osm mesh upgrade` command will not use any values from the old
+    release. Users can specify them with the new `--set` flag.
+    
+    Fixes #4330
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit a4090969f747751a2825a09421250ae53e296784[m
+Merge: 78a99278 280cb44b
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Nov 4 16:19:12 2021 -0500
+
+    Merge pull request #4324 from jaellio/updateReleaseRefs
+    
+    docs(release): instructions for updating release version references
+
+[33mcommit 55bc0aee6ea4944df0638be49a07c6fb8c1f96da[m[33m ([m[1;31morigin/fixGrafanaDescriptions[m[33m, [m[1;32mfixGrafanaDescriptions[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Wed Nov 3 08:52:23 2021 -0700
+
+    fix(grafana): add version to dashboard descriptions
+    
+    Updates the Grafana dashboard descriptions to include the OSM
+    release version. Also includes changes to upgrade the mesh details
+    dashboard to a version supported by Grafana Labs.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 78a992785c591e0ccf5140c431993d6e04c819e7[m[33m ([m[1;32mcliWarning[m[33m)[m
+Author: Jackie Elliott <64559656+jaellio@users.noreply.github.com>
+Date:   Thu Nov 4 09:05:39 2021 -0700
+
+    fix(grafana): update grafana version in dashboards (#4337)
+    
+    Updates remaining Grafana version references from 7.0.1 to 8.2.2.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 277ffc2fb5bb61a88cb4beed9db7bd5c3cad5c63[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Wed Nov 3 11:44:27 2021 -0700
+
+    docs: add release notes doc (#4338)
+    
+    Adds a release notes doc to track breaking
+    changes and deprecated functionality. Going
+    forward, this doc must be updated in the same
+    PR that introduces such changes.
+    
+    This is required to correctly track such changes
+    and document an upgrade path to users based on
+    the changes that are not backward compatible.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit d287a55ad597dc1ec0519d29c1833f629b97e9b5[m
+Merge: 2ce701cf f6c14d62
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Wed Nov 3 11:08:33 2021 -0500
+
+    Merge pull request #4325 from nojnhuh/server-first
+    
+    ref(tcp): support tcp-server-first inside the mesh
+
+[33mcommit f6c14d6282af1fa77f4fc62a8f8e72c4d311d2e5[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Thu Oct 28 17:03:06 2021 -0500
+
+    ref(tcp): support tcp-server-first inside the mesh
+    
+    This change adds the capability for OSM to handle ports with
+    `appProtocol: tcp-server-first` on services within the mesh.
+    Specifically, the main change is to add handling for `tcp-server-first`
+    ports in the mesh when we calculate the predicate function used to
+    disable the TLS and HTTP inspector listener filters. Previously, this
+    was only done for `tcp-server-first` ports specified in an Egress
+    policy resource.
+    
+    Fixes #4313
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 2ce701cf1a78016ca39014d2bbf955e4603c0a3d[m
+Merge: 1515ee45 caf00900
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Wed Nov 3 10:09:25 2021 -0500
+
+    Merge pull request #4333 from jaellio/updateActiveConnectionGraph
+    
+    fix(grafana): remove irate from active connection query
+
+[33mcommit caf00900d5a62dc338a558384eae397a923d0902[m[33m ([m[1;31morigin/updateActiveConnectionGraph[m[33m, [m[1;32mupdateActiveConnectionGraph[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Tue Nov 2 15:40:56 2021 -0700
+
+    fix(grafana): remove irate from active connection query
+    
+    Removes the irate function from the envoy cluster upstream active
+    connection query used in the OSM Pod to Service dashboard.
+    
+    Resolves #4323
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 1515ee45981d5d9f352958bd3c4ea9fba174fd40[m
+Merge: f93a2055 659f5ed8
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Tue Nov 2 11:00:20 2021 -0700
+
+    Merge pull request #4297 from jaellio/fixMetricsBugs
+    
+    fix(grafana): use osm_request_duration_ms for latency graphs
+
+[33mcommit 280cb44ba94b125043b40c8a46e4cba0500748fb[m[33m ([m[1;31morigin/updateReleaseRefs[m[33m, [m[1;32mupdateReleaseRefs[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Thu Oct 28 16:19:21 2021 -0700
+
+    chore(release): update instructions for updating release version references
+    
+    Updates the osm release guide to reference the instructions for
+    updating the release version references in the osm docs.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit f93a205553f696da015d7f0f35640ae7a39d3f25[m
+Merge: 5328f0b9 1b382734
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Tue Nov 2 02:58:16 2021 -0700
+
+    Merge pull request #4328 from shashankram/update-owner
+    
+    codeowners: expand approvers to be explicit
+
+[33mcommit 1b3827340da77376c9f540b465b5ac954b482084[m
+Author: Shashank Ram <shashr2204@gmail.com>
+Date:   Mon Nov 1 14:20:22 2021 -0700
+
+    codeowners: expand approvers to be explicit
+    
+    Expands the osm-approvers list to be explicit
+    and transparent while updating the list of
+    code approvers.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 5328f0b9b9e355ef899522be3fc3a94571c5200e[m
+Merge: e4c9d99b 1f958714
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Mon Nov 1 12:33:40 2021 -0700
+
+    Merge pull request #4326 from snehachhabria/updateCurlCommand
+    
+    update curl command for init containers
+
+[33mcommit e4c9d99b6fd21c17b53fc3951859b7a71381c061[m
+Merge: 471735dc 65c0c6d0
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Mon Nov 1 12:28:29 2021 -0700
+
+    Merge pull request #4309 from johnsonshi/uninstall-cluster-wide-resources
+    
+    feat(cli): add uninstall cluster-wide-resources cmd
+
+[33mcommit 1f958714755be9424127940094e7bc284a54c76d[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Mon Nov 1 05:58:35 2021 -0700
+
+    update curl command for init containers
+    
+    The args for the culr job on the init containers in osm-controller and
+    osm-injector has beeen updated to use curl params rather than bash
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 471735dcc70a4a84d6f0d7f00b295bbac569f1cf[m
+Merge: 678dd589 db9613ad
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Mon Nov 1 12:10:35 2021 -0500
+
+    Merge pull request #4327 from nojnhuh/maestro
+    
+    fix(maestro): update pod readiness checks
+
+[33mcommit 65c0c6d0d50c803c8ca73d3c246d6e8545a5ae6f[m
+Author: Johnson Shi <Johnson.Shi@microsoft.com>
+Date:   Fri Oct 22 15:13:43 2021 -0700
+
+    feat(cli): add uninstall cluster-wide-resources cmd
+    
+    This adds a command `osm uninstall cluster-wide-resources`,
+    which uninstalls cluster-wide resources that may have been
+    left over after osm was previously uninstalled
+    (through `osm uninstall mesh`, through helm, or through
+    uninstallation in a managed environment).
+    
+    When `osm uninstall mesh` is run, the helm post-delete hook
+    is invoked as part of the uninstall process. This deletes:
+    (1) osm control plane pods (in the osm namespace)
+    (2) osm control plane secrets (in the osm namespace)
+    (3) mutating webhook configurations
+    (4) validating webhook configurations
+    (5) osm control plane mesh config
+    
+    OSM CRDs and SMI CRDs are not deleted by the helm
+    post-delete hook.
+    
+    Additionally, all of the above are not deleted when osm
+    is uninstalled from a cluster in a managed environment,
+    as the helm post-delete hook is typically not executed
+    in such environments.
+    
+    This new subcommand ensures that the following are deleted
+    from the cluster, whether the cluster is managed or not:
+    (1) OSM CRDs
+    (2) SMI CRDs
+    (3) OSM MutatingWebhookConfigurations
+    (4) OSM ValidatingWebhookConfigurations
+    (5) OSM Secrets
+    
+    Resolves #4255.
+    
+    Signed-off-by: Johnson Shi <Johnson.Shi@microsoft.com>
+
+[33mcommit 678dd589c13f6bb3b3480efc4e255f36b55e51e2[m
+Merge: 5d5e0a89 3bf83904
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Mon Nov 1 12:05:14 2021 -0500
+
+    Merge pull request #4180 from nojnhuh/manual-demo
+    
+    docs(demo): update manual demo manifests
+
+[33mcommit 3bf839045ba4f816f2c07e5bb44d828bbed0bb34[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Thu Sep 30 17:48:38 2021 -0500
+
+    docs(demo): update manual demo manifests
+    
+    These changes update the manifests used in the demo on the docs site to
+    match the changes made in https://github.com/openservicemesh/osm-docs/pull/195
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit db9613adc73c039f0fbd301a715cc32f9dc2d9f1[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Fri Oct 29 13:58:01 2021 -0500
+
+    fix(maestro): update pod readiness checks
+    
+    These changes add a new check in the maestro that the MySQL pod  in the
+    bookwarehouse namespace is ready. It also updates
+    `WaitForPodToBeReady()` to check the `Ready` condition on the Pod which
+    is more complete than the existing check that each container in the Pod
+    is ready.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 659f5ed8e4c995797dbeef0bd2f4f77c05b88887[m[33m ([m[1;31morigin/fixMetricsBugs[m[33m, [m[1;32mfixMetricsBugs[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Wed Oct 20 23:22:04 2021 -0700
+
+    fix(grafana): use osm_request_duration_ms for latency graphs
+    
+    This PR replaces envoy_cluster_upstream_rq_time with the existing
+    osm_request_duration_ms SMI metric to display latency in the mesh.
+    Currently, the latency graphs are present in the pod to service,
+    service to service, and workload to service dashboards. Unlike
+    envoy_cluster_upstream_rq_time, the osm_request_duration_ms metric
+    does not capture the src or destination service. Therefore, the
+    latency graphs no longer fit on the dashboards that allow the user
+    to specify a source service or see the latencies labeled with the
+    envoy cluster name (which includes the destination service name).
+    
+    This PR removes the latency graphs from the pod to service, service
+    to service, and workload to service dashboards and creates a new
+    dashboard for workload to workload metrics.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 5d5e0a89f64bac721c80c282165cfc7d1443d514[m
+Merge: cfc96d13 675f2e2d
+Author: Jackie Elliott <64559656+jaellio@users.noreply.github.com>
+Date:   Thu Oct 28 12:22:53 2021 -0700
+
+    Merge pull request #4318 from jaellio/updateGrafanaVersion
+    
+    chore(grafana): update Grafana version
+
+[33mcommit 675f2e2db10fa783102ea4a99de9ab174baf6a42[m[33m ([m[1;31morigin/updateGrafanaVersion[m[33m, [m[1;32mupdateGrafanaVersion[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Wed Oct 27 10:30:40 2021 -0700
+
+    chore(grafana): update Grafana version
+    
+    Updates image versions for grafana and grafana image renderer. The
+    version of grafana that osm currently uses is not supported by
+    Grafana lab. Therefore, osm cannot share dashboards in the grafana
+    dashboard library.
+    
+    Updates outdated graph type to timeseries.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit cfc96d1333a3ccb524ac692d238d9ec9b61343d5[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Thu Oct 28 10:16:12 2021 -0700
+
+    tests/e2e: skip traffic split selector test for OpenShift (#4320)
+    
+    The traffic split selector tests uses default service accounts
+    and doesn't need to be tested on OpenShift. The security
+    context constraints would need to be applied for this test
+    to work on OpenShift, while the test itself is primarily
+    testing the label selector logic in the control plane.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 4a40b33356efbb82429308ccca25f72071e4f057[m
+Author: mudit singh <mudit.singh@india.nec.com>
+Date:   Thu Oct 28 21:55:27 2021 +0530
+
+    Fixed development guide broken link (#4322)
+    
+    fixes #4321
+    
+    Signed-off-by: mudit singh <mudit.singh@india.nec.com>
+
+[33mcommit 92c0719f2836cdd723ace48cd58f9ca697418edd[m
+Author: Michelle Noorali <minooral@microsoft.com>
+Date:   Thu Oct 28 11:45:40 2021 -0400
+
+    ref(charts) updatea top OpenServiceMesh key to osm (#4317)
+    
+    Signed-off-by: Michelle Noorali <minooral@microsoft.com>
+
+[33mcommit 026238dd0cae0d9e726e247c95bf1f6171768208[m
+Merge: e7b78aaa 323e58c4
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Oct 28 10:31:52 2021 -0500
+
+    Merge pull request #4071 from nojnhuh/nightly-release
+    
+    chore(ci): create release on nightly tags
+
+[33mcommit e7b78aaadb09ed6c4519b3d9bf467893d4b446b1[m
+Author: Thomas Stringer <thstring@microsoft.com>
+Date:   Wed Oct 27 16:01:56 2021 -0400
+
+    ingress: fix typos (#4319)
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+
+[33mcommit 323e58c4dd223fc67848670be057d038e011ac00[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Wed Sep 1 16:47:02 2021 -0500
+
+    chore(ci): create release on nightly tags
+    
+    This change modifies the release CI workflow to run on nightly tags in
+    addition to regular releases. To facilitate testing, nightly releases
+    will be created based on tags of the form `v0.0.0-nightly.YYYY-MM-DD`.
+    Nightlies will be treated as pre-releases.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit e61efe92443f9f15048cb6dd09f811f5df894056[m
+Merge: 30a2f05b 1dfa5ec7
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 27 10:58:20 2021 -0700
+
+    Merge pull request #4316 from snehachhabria/parmaeterizeImages
+    
+    parameterize all images used in helm charts
+
+[33mcommit 1dfa5ec7933b14bec6561ad47d75ed5f5593b9b1[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 27 03:22:12 2021 -0700
+
+    parameterize all images used in helm charts
+    
+    Update all the images used in the helm charts to be parameterized via
+    the values.yaml.
+    
+    Fixes #4315
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 30a2f05b14087e187b2f3b6855cf0e7b913d4a9d[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Mon Oct 25 12:19:02 2021 -0700
+
+    docs: update release notes workflow (#4311)
+    
+    Adds sections for notable changes and deprecation
+    notes, and documents these sections needing to be
+    filled, in the release notes.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 91dca3e52641a92f5267409ab546360f8c9d193d[m
+Author: Thomas Stringer <thstring@microsoft.com>
+Date:   Mon Oct 25 13:02:53 2021 -0400
+
+    Add bug report feature to get all pod data in the mesh with the --all parameter (#4310)
+    
+    * add parameter to get all pods and namespaces in the mesh for the bug report
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+    
+    * set appNamespaces to nil and fix error message wording
+    
+    Signed-off-by: Thomas Stringer <thstring@microsoft.com>
+
+[33mcommit 8f92c9d07533f420d14d42f9061c8bc89eb08108[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Fri Oct 22 14:03:46 2021 -0700
+
+    docs/samples: add manifests for canary demo (#4308)
+    
+    Adds the manifests required to demo canary rollout.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit d9baef65244dbab9d117e57cfcc3285d57971405[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Fri Oct 22 12:14:15 2021 -0700
+
+    catalog: allow root service selector to match backend pods (#4303)
+    
+    Allows root service in a traffic split to have a selector
+    that matches the pods backing the leaf services. This
+    scenario was not tested before.
+    
+    The change updates the inbound policy generation code
+    in a way such that policies are built for each upstream
+    service (including root service), where the upstream
+    service is guaranteed to be unique. Additionally,
+    traffic directed to the root service are routed to
+    a cluster corresponding to the root service and not
+    the leaf service.
+    
+    Resolves #4296
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 4baa2a33c0d7c37053f7905f3016fc35c68478b3[m
+Merge: 43cd0fe2 8c26e095
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Fri Oct 22 08:55:31 2021 -0700
+
+    Merge pull request #4306 from snehachhabria/fixVulnerabilities
+    
+    fix(vulnerability): Update github.com/ulikunitz/xz version
+
+[33mcommit 43cd0fe2093aaa65dfebd290e1ec6c00bff6a267[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Fri Oct 22 08:41:58 2021 -0700
+
+    demo: use default namespace if unset (#4304)
+    
+    Uses the default namespaces if unset. This removes
+    the need for the environment variables in demo
+    manifests when using the defaults.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 31f70a93271d481f950d99cc3254ff07559ca083[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Fri Oct 22 08:40:17 2021 -0700
+
+    Update default code approvers (#4305)
+    
+    Updates the default code approvers as a part of the
+    effort to improve code quality and reviews.
+    Everyone in the community is welcome to review a PR,
+    osm-approvers are responsible for approving a PRs,
+    and osm-maintainers can merge a PR upon approval.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit ef932d08975ab57915c313617eacaae1a80401af[m
+Merge: 4b189418 8267fe8d
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Fri Oct 22 10:09:45 2021 -0500
+
+    Merge pull request #4299 from nojnhuh/no-dep-update
+    
+    ref(build): remove need for helm dependency update
+
+[33mcommit 8c26e09529d7080265239cfef97e51db6a02ac15[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Fri Oct 22 04:14:49 2021 -0700
+
+    fix(vulnerability): Update github.com/ulikunitz/xz version
+    
+    Update github.com/ulikunitz/xz version to v0.5.10 to fix dependency bot
+    vulnerability.
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 4b1894189d288026e91a807dc59e6d60a4259337[m
+Merge: 76365f5c 40d3b1a7
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Fri Oct 22 02:42:44 2021 -0700
+
+    Merge pull request #4301 from snehachhabria/releasev0.11.1
+    
+    chore(release): update chart version to v0.11.1
+
+[33mcommit 76365f5cbbf777511fbbd9fc338fe9e4508cd5fa[m
+Author: Michelle Noorali <minooral@microsoft.com>
+Date:   Thu Oct 21 17:50:12 2021 -0400
+
+    ref(cli): mv uninstall -> uninstall mesh command (#4283)
+    
+    part of #4255
+    
+    Signed-off-by: Michelle Noorali <minooral@microsoft.com>
+
+[33mcommit 1c16017900f42a36f8cb44999fc8692b38a74d9a[m
+Author: Clarence Bakirtzidis <clarenceb@gmail.com>
+Date:   Fri Oct 22 08:02:53 2021 +1100
+
+    Removing a namespace also removes ignore flag (#4288)
+    
+    * removing namespace removes ignore flag
+    
+    Signed-off-by: Clarence Bakirtzidis <clarenceb@gmail.com>
+    
+    * Simplify namespace remove code
+    
+    Signed-off-by: Clarence Bakirtzidis <clarenceb@gmail.com>
+    
+    * Fixed lint errors for constant
+    
+    Signed-off-by: Clarence Bakirtzidis <clarenceb@gmail.com>
+
+[33mcommit b0037880a6f26754625e0f4b0ea72e073c652468[m
+Merge: 22c1b4d8 481149dd
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Oct 21 14:30:51 2021 -0500
+
+    Merge pull request #4300 from nojnhuh/bookstore-crash
+    
+    fix(demo): fail gracefully when /books-bought receives no POST data
+
+[33mcommit 8267fe8d0efa427132ddfd9ca8ff440e95a1a8dc[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Thu Oct 21 11:03:10 2021 -0500
+
+    ref(build): remove need for helm dependency update
+    
+    This change commits the subcharts in charts/osm/charts so `helm
+    dependency update` is no longer needed frequently since that command has
+    been failing recently in CI intermittently. `helm dependency update`
+    will still need to be run in the future only when a new version of a
+    subchart is needed.
+    
+    Fixes #4284
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 40d3b1a70768be4025aa05a70e26e383167a66fd[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Thu Oct 21 12:14:45 2021 -0700
+
+    chore(release): update chart version to v0.11.1
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 481149dd505f3130921f557aaf3daabb641581b7[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Thu Oct 21 12:13:53 2021 -0500
+
+    fix(demo): fail gracefully when /books-bought receives no POST data
+    
+    This change makes the bookstore respond with an HTTP 400 error when the
+    request body is not valid JSON instead of crashing.
+    
+    Fixes #4295
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 22c1b4d851d907eadc7b54fd179b9d275cbefe22[m
+Author: Johnson Shi <Johnson.Shi@microsoft.com>
+Date:   Thu Oct 21 09:34:49 2021 -0700
+
+    fix(cli): fix uninstall cmd not showing smi info (#4235)
+    
+    Signed-off-by: Johnson Shi <Johnson.Shi@microsoft.com>
+
+[33mcommit c38eb256100d546322617eeec635b00fc07511fc[m
+Merge: e9ec05f5 db5eb691
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 20 12:02:04 2021 -0700
+
+    Merge pull request #4291 from snehachhabria/fixMeshConfig
+    
+    fix(MeshConfig): Remove omitEmpty from bool values in the meshconfig
+
+[33mcommit db5eb69154a4d263fff75fbcaa7572ca780d88fc[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 20 11:07:40 2021 -0700
+
+    fix(MeshConfig): Remove omitEmpty from bool values in the meshconfig
+    
+    By default the meshConfig was ingnoring empty bool values which includes
+    false, hence a number of fields weren't showing up. This PR removes the
+    omitEmpty from all bool values in the meshConfig.
+    
+    This is necessary because we have a number of flags set to false by default and they do not show up in the meshConfig, as they are interpreted as nil and skipped during JSON encoding when the omitempty tag is preset, making it difficult for users to decipher what a the value of a particular key is in the meshConfig
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit e9ec05f5152b5e090af46b4d9c0d24fa578ca1c4[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Wed Oct 20 11:19:09 2021 -0700
+
+    ingress: deprecate k8s ingress API usage (#4285)
+    
+    Starting v0.10, OSM uses the IngressBackend API for
+    ingress configuration. This change deprecates the
+    usage of the k8s Ingress API in code.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit a3979848ed75df7dc73182c28b6ba188185c5abd[m
+Merge: c653a2a5 daa6c0ea
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Wed Oct 20 12:56:33 2021 -0500
+
+    Merge pull request #4290 from nojnhuh/cleanup-image
+    
+    fix(osm-crds): use busybox base image
+
+[33mcommit daa6c0ea027b992afac15d81445b680a299a1a8c[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Mon Oct 18 11:19:22 2021 -0500
+
+    fix(osm-crds): use busybox base image
+    
+    The `bitnami/kubectl` used as the base for the `osm-crds` image has
+    several reported vulnerabilities found with `trivy`. This change uses
+    `busybox` as the base image instead which has no reported
+    vulnerabilities.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit c653a2a5e38cef33d49b7d4d2729a77b0c879126[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Tue Oct 19 15:59:47 2021 -0700
+
+    CI/codeql: fix indent (#4287)
+    
+    Fixes an indenting issue.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit bfb96031113390272c68600bf3cf2ab047f01029[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Tue Oct 19 15:09:15 2021 -0700
+
+    CI/codeql: cache Go module and build dependencies (#4286)
+    
+    Caches Go module and build dependencies to speed
+    up the job.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 046d26a7c28f392e388fb64f878eee79ea668503[m
+Merge: 263ab54b b00c17a1
+Author: Jackie Elliott <64559656+jaellio@users.noreply.github.com>
+Date:   Tue Oct 19 12:04:01 2021 -0700
+
+    Merge pull request #4268 from jaellio/namespaceResourceCount
+    
+    feat(metrics): monitored namespaces prometheus metric
+
+[33mcommit 263ab54b0d659aa07e66ed18b395c01a6006abd4[m
+Author: Jackie Elliott <64559656+jaellio@users.noreply.github.com>
+Date:   Tue Oct 19 08:44:41 2021 -0700
+
+    go/deps: update Helm to v3.7.1 (#4277)
+    
+    Updates Helm to v3.7.1 which is a patch release. The previous Helm
+    version v3.7.0 was dependent on a version of containerd that
+    required a bug fix.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 77ae2184f8c32b9ecef4e38f1bfe23e4905f4896[m[33m ([m[1;32mtestingTrafficEncryption[m[33m)[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Mon Oct 18 12:40:22 2021 -0700
+
+    CI: skip Go codeql action for docs (#4276)
+    
+    Skips the Go codeql action for docs only changes.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 48b9150654efe2f75910a804e3cc593f66b3261b[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Mon Oct 18 12:34:30 2021 -0700
+
+    docs/examples: add tcp-echo manifest (#4275)
+    
+    Adds the manifest for the tcp-echo service required
+    to demo TCP routing in OSM.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit b00c17a12bd3380b230529d767824d4c9028091a[m[33m ([m[1;31morigin/namespaceResourceCount[m[33m, [m[1;32mnamespaceResourceCount[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Fri Oct 15 10:40:19 2021 -0700
+
+    Removes namespace label from metric.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit c9a82ffb181057ac0a2a696c6046ec135f3737fc[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Fri Oct 15 09:54:58 2021 -0700
+
+    Updates namespace counter inline and removes goroutine.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit ceb6044a59ca522143e3eec65fc4f3f73e3e169c[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Tue Oct 12 12:14:30 2021 -0700
+
+    feat(metrics): monitored namespaces prometheus metric
+    
+    Adds a monitored namespace counter guage. StartNamespaceCounter
+    is a goroutine that subscribes to the namespace added and deleted
+    events on the KubeEventPubSub. The metric is updated based on
+    these events.
+    
+    The Monitored Namespace Count panel was updated to use the
+    MonitoredNamespaceCouter metric. The count is no longer calculated
+    by subracting the number of namespace deleted events from the
+    number of namespace added events obtained from the
+    k8sApiEventCounter. As descibed in #3918, the previous PromQL query
+    did not accurately determine the difference between the counter
+    vectors. This change removes the reliance on the k8sApiEventCounter
+    to determine resource counts.
+    
+    Removes Number of Pods, and Services in the Mesh panels from the
+    Grafana dashboard. Currently, osm Prometheus metrics do not exist
+    to accurately determine the number of resources in the mesh.
+    Future PRs will add these metrics and add panels to the dashboard.
+    
+    Addresses #3918
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit a09731eda755aee78a1a5bd5a67e301468423ce6[m
+Merge: 99f64e79 7cbff92d
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Fri Oct 15 14:30:47 2021 -0700
+
+    Merge pull request #4270 from snehachhabria/preReleaseFix
+    
+    CI: fix image scan job for pre-release
+
+[33mcommit 7cbff92d8f8ee4bffb36874b53f4a81dddd553d1[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Fri Oct 15 12:21:51 2021 -0700
+
+    fix(pre-release): Update  image scan in pre-release workflow
+    
+    Image scan on the pre-release workflow needs to depend on images and not
+    build.
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 99f64e79378a21c8035abdf026882325c7c3c684[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Fri Oct 15 10:30:07 2021 -0700
+
+    messaging/proxy: avoid unnecessary proxy broadcasts (#4265)
+    
+    Avoids unnecessary proxy broadcasts for pod and service
+    events.
+    
+    Pod add/delete events will result in endpoint
+    add/delete events for pods backing a service, which
+    are already triggering proxy broadcast events. Pod add
+    events are also going to trigger XDS gRPC connects which
+    will result in a DiscoveryRequest for corresponding client
+    proxies. Service field updates that should result in an
+    envoy config change are also taken care of by corresponding
+    endpoint updates because endpoint name/port/protocol are
+    derived from the service object.
+    
+    The only scenario where a proxy should be updated when a pod
+    is updated is when the metrics configuration for the proxy
+    is turned on/off via the metrics label. In this case, this
+    change ensures only the specific proxy is updated.
+    
+    Part of #4256
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 1285862b6530b2a43d9facfec1457002ef650b81[m[33m ([m[1;32mreleaseGuideUpdates[m[33m)[m
+Merge: 6df313e9 b68b667e
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Thu Oct 14 17:55:50 2021 -0700
+
+    Merge pull request #4266 from snehachhabria/fixPreReleaseWorkflow
+    
+    fix(pre-release): fix indentation in pre-release workflow
+
+[33mcommit b68b667ef48aa0f2c4b61dd155fa1506fdb00cc6[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Thu Oct 14 16:28:28 2021 -0700
+
+    fix(pre-release): fix indentation in pre-release workflow
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 6df313e965f2bd82bb5106ccd8e0c4372fc88783[m
+Merge: 5e619560 1d8a51f5
+Author: Sanya Kochhar <42152676+SanyaKochhar@users.noreply.github.com>
+Date:   Thu Oct 14 17:17:06 2021 -0400
+
+    Merge pull request #4258 from SanyaKochhar/cleanup-secrets
+    
+    charts(cleanup): delete secrets on cleanup
+
+[33mcommit 1d8a51f52b8d254ff5bd3c4e489d1ccb70f35672[m
+Author: Sanya Kochhar <kochhars@microsoft.com>
+Date:   Thu Oct 14 14:31:06 2021 -0400
+
+    charts(cleanup): delete secrets on cleanup
+    
+    Signed-off-by: Sanya Kochhar <kochhars@microsoft.com>
+
+[33mcommit 5e619560640208d6fac46f84682f7a1a266cbf7b[m
+Author: Michelle Noorali <minooral@microsoft.com>
+Date:   Thu Oct 14 12:35:48 2021 -0400
+
+    ref(*): removes unnecessary namespace check (#4251)
+    
+    This commit removes an unnecessary call to check if the
+    namespace is monitored which is already checked by
+    ListMultiClusterServices().
+    
+    Signed-off-by: Michelle Noorali <minooral@microsoft.com>
+
+[33mcommit b948ead6b2b7a757261221594ee2468ba630e4d3[m
+Merge: 3ca5d0dd 93d862e3
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Oct 14 10:06:38 2021 -0500
+
+    Merge pull request #4252 from nojnhuh/codecov
+    
+    chore(ci): Update codecov uploader
+
+[33mcommit 3ca5d0ddf6dfc2b56992bdb65ec842fb495674c1[m
+Merge: f7852cf6 09c58254
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Oct 14 10:06:09 2021 -0500
+
+    Merge pull request #4253 from nojnhuh/chart-readme
+    
+    docs(chart): template chart README versions
+
+[33mcommit 09c58254ca70e6d589d11caef2993f20ececd9d9[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Wed Oct 13 15:04:28 2021 -0500
+
+    docs(chart): template chart README versions
+    
+    This change updates the chart README template to use templates from
+    `helm-docs` for things likely to change, like the chart version and
+    minimum Kubernetes version.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 93d862e364196877a02c54e453bf8eebea9faf5c[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Wed Oct 13 14:24:47 2021 -0500
+
+    chore(ci): Update codecov uploader
+    
+    codecov is deprecating their bash uploader we currently use. This change
+    updates the CI config to use their GitHub action which uses their new
+    uploader.
+    
+    Fixes #4245
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit f7852cf63c31abc81fb144525da4812f4c648851[m
+Merge: 5ae62449 473bffdd
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Wed Oct 13 14:16:57 2021 -0500
+
+    Merge pull request #4250 from nojnhuh/resources
+    
+    chore(chart): increase osm-controller memory limit
+
+[33mcommit 473bffdd6e9cbf411777a957ea8b2ad95d96b980[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Wed Oct 13 13:39:35 2021 -0500
+
+    chore(chart): increase osm-controller memory limit
+    
+    This change increases the memory limit for osm-controller to 1G based on
+    findings from https://github.com/openservicemesh/osm/issues/4206 and
+    refers to the scale doc for more details.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit 5ae6244993d6245295c3230a1627b4a1193fe9cb[m
+Merge: 04736da7 d1a88588
+Author: Niranjan Shankar <nshankar@microsoft.com>
+Date:   Wed Oct 13 13:11:13 2021 -0400
+
+    Merge pull request #4232 from nshankar13/add_image_scan
+    
+    chore(security/scan): Scan docker images
+
+[33mcommit d1a8858868153c65cce7bcf9ff00ef44285bd7f6[m
+Author: nshankar13 <nshankar@microsoft.com>
+Date:   Fri Oct 8 13:41:36 2021 -0400
+
+    chore(security/scan): Scan docker images
+    
+    Add step in the CI and the release job to
+    scan docker images for potential security
+    vulnerabilities. The Jobs will show all security
+    scan outputs in the logs, but will only exit
+    if the severity level is Medium, High, or Critical,
+    and will continue if if the level is Unknown or Low.
+    
+    Signed-off-by: nshankar13 <nshankar@microsoft.com>
+
+[33mcommit 04736da74ae52761c55acf1f2a406352826ffe68[m
+Author: Michelle Noorali <minooral@microsoft.com>
+Date:   Wed Oct 13 08:47:33 2021 -0400
+
+    fix(preset-mesh-config.yaml): add json check (#4241)
+    
+    + adds mustToJson function to values in json blob
+    to ensure value can be converted to proper json. Returns
+    error if not.
+    + If value is passed in via --set, user doesn't need
+    to worry about passing in proper json
+    
+    Resolves #4239
+    
+    Signed-off-by: Michelle Noorali <minooral@microsoft.com>
+
+[33mcommit 0a5fa82159a1a407ae21b51e6d4b0f3358481231[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Tue Oct 12 16:36:56 2021 -0700
+
+    ingress/client: remove unnecessary check for namespace (#4244)
+    
+    Removes a redundant check in the ingress cache that checks
+    if the namespace is monitored. The check is reduntant because
+    there is already a check that ensures the ingress resource
+    namespace is the same as the MeshService namespace, where
+    MeshService's namespace is guaranteed to be monitored.
+    
+    IsMonitoredNamespace() usage should be avoided if possible,
+    since repeated cache access of the backing thread-safe map
+    results in performance issues due to contention.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 2119c5e84d9b0ceae9400a6ed2524774b3865d00[m[33m ([m[1;33mtag: pre-rel-v1.0.0-rc.1[m[33m)[m
+Merge: 11af38e3 3ce755ca
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Tue Oct 12 13:43:08 2021 -0700
+
+    Merge pull request #4243 from snehachhabria/fixCleanupScript
+    
+    fix(cleanuphook): Delete mwhc and vwhc in all scenarios
+
+[33mcommit 3ce755cae0d28a1dcc33a59a09110dea3bf9f20d[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Tue Oct 12 12:35:36 2021 -0700
+
+    fix(cleanuphook): Delete mwhc and vwhc in all scenarios
+    
+    The cleanup hook had a condition to delete the mwhc and vwhc only when
+    the reconciler is enabled, which is incorrect. These two resources
+    need to be deleted always.
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 11af38e30f441d90b21049ebcc46ddacdf1bf367[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Tue Oct 12 12:36:02 2021 -0700
+
+    messaging/broker: batch proxy update events (#4240)
+    
+    Implements batch processing of proxy update events
+    to reduce the number events propagated to the XDS
+    routine, through event coalescing, when the events
+    are triggered in close proximity in time. Without
+    this change, when a large number of events are
+    received in a short time interval, not coalescing
+    the events will trigger a large number of proxy
+    update events on the pub-sub, that will result
+    in the osm-controller's CPU spiking, and also
+    that of envoy based on how soon the XDS state
+    machine converges.
+    
+    This implements a sliding window much like how
+    the dispatcher routine in mesh-catalog would
+    handle proxy events prior to the introduction
+    of a message broker, except that it resolves
+    potential memory leaks that might arise when
+    the timers are reset during a processing window.
+    
+    It also updates a test to not use rate limiting
+    because it slows the test by about ~25s, and the
+    ticker test to use the counter exposed by the
+    broker.
+    
+    Resolves #4238
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 4fa8f91761420c58f442831e1a4d1a456248ce60[m
+Merge: d076d7a1 a23f83c6
+Author: Niranjan Shankar <nshankar@microsoft.com>
+Date:   Tue Oct 12 12:48:17 2021 -0400
+
+    Merge pull request #4228 from nshankar13/add-code-scan
+    
+    chore(security/scan): Add codeql scan
+
+[33mcommit a23f83c67d14d693a0aeb15de8ea6863ad96a47d[m
+Author: nshankar13 <nshankar@microsoft.com>
+Date:   Thu Oct 7 15:29:32 2021 -0400
+
+    chore(security/scan): Add codeql scan
+    
+    This PR adds a codeql GH action workflow to scan
+    the source code for potential security
+    vulnerabilities. This will run as part of CI
+    and as a nightly run.
+    
+    Signed-off-by: nshankar13 <nshankar@microsoft.com>
+
+[33mcommit d076d7a13652d020e81c847effaa4e43b89a13ea[m
+Merge: 4deb9d8d c40ad8f1
+Author: Jackie Elliott <64559656+jaellio@users.noreply.github.com>
+Date:   Mon Oct 11 10:17:37 2021 -0700
+
+    Merge pull request #4233 from jaellio/updateVersionv0.11
+    
+    chore(release): update version to v0.11 in chart
+
+[33mcommit 4deb9d8defafb29f0f18bd33d4b4f3267cb03792[m
+Merge: 75562ac3 c055b1de
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Mon Oct 11 10:31:26 2021 -0500
+
+    Merge pull request #4234 from nojnhuh/mem
+    
+    fix(ads): properly sync proxy disconnect
+
+[33mcommit c055b1de19d2dbd750f3dd65a0b1faa0b3612e92[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Fri Oct 8 16:05:39 2021 -0500
+
+    fix(ads): properly sync proxy disconnect
+    
+    This change fixes a goroutine leak leading to high memory usage when
+    Pods with proxies are being churned. The `StreamAggregatedResources()`
+    function launches a new goroutine running `receive()` whenever a new
+    proxy connects to osm-controller. Proxies may disconnect in a few
+    different scenarios, but from logs the most common case seemed to be
+    on `ctx.Done()` from inside `StreamAggregatedResources()`. When that
+    condition was hit however, nothing signalled the `receive()` goroutine
+    to stop, so those would run forever even after a proxy disconnected.
+    
+    This change moves listening for `ctx.Done()` to `receive()` and relies
+    on `StreamAggregatedResources()` to exit when `receive()` finishes like
+    it was doing before.
+    
+    Related to #4206
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit c40ad8f17c4a5906a73909960bc6fe4241fe69c0[m[33m ([m[1;31morigin/updateVersionv0.11[m[33m, [m[1;32mupdateVersionv0.11[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Fri Oct 8 12:38:57 2021 -0700
+
+    chore(release): update version to v0.11 in chart
+    
+    Updates version in `Chart.yaml` to 0.11.0, the latest release
+    version.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 75562ac34afbe0d8755caa3bd9c0486c6c33b84e[m
+Merge: 09f48387 4d140cfe
+Author: Jackie Elliott <64559656+jaellio@users.noreply.github.com>
+Date:   Fri Oct 8 11:10:01 2021 -0700
+
+    Merge pull request #4211 from jaellio/updateVersion
+    
+    go/deps: update Helm to v3.7.0 and Kubernetes packages
+
+[33mcommit 09f483871ec63336ca7b71947f2603c7e187ed6e[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Fri Oct 8 11:01:41 2021 -0700
+
+    events: log event kind being processed and disable resyncs (#4231)
+    
+    Logs event kind being processed by the message broker and
+    disabled the k8s period resyncs. The contoller reuses Ticker
+    for resyncs if necessary.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 9572b52f36b2e1f03dda9166a3eef291c24c371e[m
+Merge: 33336c6f 2e1ebea5
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Thu Oct 7 14:22:52 2021 -0700
+
+    Merge pull request #4229 from snehachhabria/tlsVersion
+    
+    chore(tlsversion): Add a tls minimum version for webhooks
+
+[33mcommit 2e1ebea543d7d78a38fc74f85ba2ac1a20e49de5[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Thu Oct 7 13:43:23 2021 -0700
+
+    chore(tlsversion): Add a tls minimum version for webhooks
+    
+    Add a minimum tls version for webhooks
+    
+    fixed #4165
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 4d140cfed6554b4fa07fafce28c375e4af0963db[m[33m ([m[1;31morigin/updateVersion[m[33m)[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Thu Oct 7 06:52:11 2021 -0700
+
+    Update tests to resolve missing mock calls
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit db5d919571c4212f87369d32492ee3e2d57ae00c[m
+Author: jaellio <jaellio@microsoft.com>
+Date:   Mon Oct 4 21:17:36 2021 -0700
+
+    go/deps: update Helm to v3.7.0 and kubernetes packages
+    
+    Updates Helm to v3.7.0 which is a feature release. The previous
+    Helm version, v3.6.1 was dependent on a version of containerd that
+    required a bug fix. Helm needed to be updated to a version that
+    included the fixed containerd pkg. As a result, the kubernetes
+    packages are updated to v0.22.1. Also includes codchanges
+    resulting from upgrading the pkg versions.
+    
+    Signed-off-by: jaellio <jaellio@microsoft.com>
+
+[33mcommit 33336c6f17c2a97858c567b9ca0e358f10499f65[m[33m ([m[1;32mresourceMetric[m[33m)[m
+Merge: 25e85b54 50c0a50d
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 6 13:54:24 2021 -0700
+
+    Merge pull request #4218 from snehachhabria/fixUpgradeTest
+    
+    fix(UpgradeTest) : Fix the upgrade e2e test
+
+[33mcommit 50c0a50d7d18969228390e104d8fc8a08b68286e[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 6 10:32:32 2021 -0700
+
+    fix(UpgradeTest) : Fix the upgrade e2e test
+    
+    Fixes the failing upgrade test.
+    
+    Fixed #4215
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 25e85b54e12ba0a6af820c77eb72542174ba4338[m
+Merge: 0e3f7468 6e40f0df
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 6 13:29:01 2021 -0700
+
+    Merge pull request #4221 from snehachhabria/fixImageTags
+    
+    [crossport] Update image pull to use tags if specified over the digest
+
+[33mcommit 6e40f0dfb1f6ca9a841bf8e07692f9e008215606[m
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Wed Oct 6 13:04:10 2021 -0700
+
+    fix(ImageTags) : Update image pull to use tags if specified over the digest
+    
+    Update the image pull logic to use tags over digest. This change was
+    added to release-v0.11 and not on main.
+    
+    Signed-off-by: Sneha Chhabria <snchh@microsoft.com>
+
+[33mcommit 0e3f7468cdb2dfcaada0e9f96cda1a08939b42ff[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Wed Oct 6 12:21:24 2021 -0700
+
+    metrics: add counters related to proxy response send (#4219)
+    
+    Adds metrics counters for successful and failed sends
+    to proxies.
+    
+    Resolves #4191
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit d0d5d9721752b07b3e3d0147ebb8c596d3ab1ed3[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Wed Oct 6 10:13:09 2021 -0700
+
+    envoy/registry: do not track disconnected proxies (#4216)
+    
+    Proxies are expected to disconnect when the corresponding
+    pods are recycled.
+    Since the cluster can go through a lot of churn, keeping
+    track of disconnected proxies results in additional
+    memory consumption and bookkeeping which is better avoided.
+    It is easy enough to know how many times a proxy has
+    reconnected to a control plane after a disconnect using
+    the osm_proxy_reconnect_count metric.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 0309a0fd42d2bba1929234a1c358db5d72c5a324[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Tue Oct 5 16:21:36 2021 -0700
+
+    messaging: use message broker in control plane (#4212)
+    
+    This change refactors the control plane to use
+    the message broker for internal message passing
+    as opposed to using the global pub-sub instance.
+    
+    It addresses existing issues around deadlocks and
+    blocked channels arising from using the pub-sub
+    incorrectly, while removing arbitrary sizing of
+    buffered channels and timeouts previously encoded
+    in the dispatcher component. Previously, the controller
+    would hang as it would be blocked from processing
+    events when the channels were at capacity.
+    
+    At a high level, the change does the following:
+    
+    - Deprecates the global pub-sub in favor of
+      using the message broker which internally
+      manages dedicated pub-sub instances for different
+      messages.
+    
+    - Fixes deadlocks and blocked channels that arose
+      from using the global pub-sub. The 512 channel
+      size masked issues until the channel was at
+      capacity. Moreover, unsubscriptions of channels
+      were not handled correctly.
+    
+    - Updates the k8s event handler functions to simply
+      queue the item into a workqueue for further processing
+      instead of directly publishing events.
+    
+    - Updates code previously relying on the global
+      pub-sub to use the message broker.
+    
+    - Refactors helper goroutines to follow the pattern
+      of running unless signalled to stop.
+    
+    - Reimplements Ticker to simplify ticker start/stop
+      mechanism. Previous implementation was unnecessarily
+      complex.
+    
+    - Refactors tests to remove dependency on pub-sub
+      when testing functions that access the caches.
+    
+    - Removes the experimental code for async proxy-service
+      mapping which is un-optimal and deadlocks. This needs
+      to be re-implemented to address existing limitations.
+    
+    Resolves #4167
+    
+    Testing done:
+    
+    - Tested this change and verified that deadlocks and
+      channel blocking issues are addressed.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 1caae978f9b60297bb11aeeee0a09bd8e6adc44c[m[33m ([m[1;32mbackportDisableSmiTest[m[33m)[m
+Author: Michelle Noorali <minooral@microsoft.com>
+Date:   Tue Oct 5 11:10:16 2021 -0400
+
+    fix(tests): disable smi validate test for NoInstall (#4209)
+    
+    + for SMI Traffic Target validation
+    
+    Co-authored-by: Niranjan Shankar nshankar@microsoft.com
+    Signed-off-by: Michelle Noorali <minooral@microsoft.com>
+
+[33mcommit f454b0784a578fde5db8fcc71e9593ae3bcebd40[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Mon Oct 4 16:19:26 2021 -0700
+
+    messaging: introduce message broker (#4210)
+    
+    Introduces message broker functionality to
+    handle messaging in OSM control plane. The broker
+    will handle proxy update events and k8s events
+    required by other components within the control plane.
+    The broker comprises of a workqueue to process events
+    and pub-sub instances to implement the messaging
+    channels. The message broker will replace the global
+    pub-sub functionality.
+    
+    Testing done:
+    - 100% unit test coverage
+    - Verified fixes for #4167 with the use of
+      message broker
+    
+    Required by #4167
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit a84e32580384f4f0371e0ab2a196f4aa5bd46127[m
+Merge: ae5c9d89 a6b59b9b
+Author: Shalier Xia <69616256+shalier@users.noreply.github.com>
+Date:   Mon Oct 4 09:16:00 2021 -0700
+
+    Merge pull request #4205 from shalier/addPriorityClassNames
+    
+    feat(charts): Adding priorityClassName to the OSM deployments
+
+[33mcommit ae5c9d89664885f7fc458e7ad0f4443d4c38a778[m
+Author: Michelle Noorali <minooral@microsoft.com>
+Date:   Fri Oct 1 15:05:09 2021 -0400
+
+    feat(*): ignore invalid traffic targets (#4177)
+    
+    + ignores invalid traffic targets when building envoy config
+    + provides extra guarantee that even if invalid traffic targets
+    exist in cluster before OSM is installed, OSM will ignore them
+    
+    resovles #4116
+    
+    Signed-off-by: Michelle Noorali <minooral@microsoft.com>
+
+[33mcommit a6b59b9b5edbebd44b52385e294eeac08f06b43c[m
+Author: Shalier Xia <shalierxia@microsoft.com>
+Date:   Fri Oct 1 10:30:13 2021 -0700
+
+    feat(charts): Adding priorityClassName to the OSM deployments
+    
+    Marks osm-controller, osm-injector, and osm-bootstrap pods as critical.
+    https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
+    See also PR #4201 for more details
+    
+    Signed-off-by: Shalier Xia <shalierxia@microsoft.com>
+
+[33mcommit 37c3d65f3b61e40b1380962df355763662494e27[m
+Author: Shashank Ram <21697719+shashankram@users.noreply.github.com>
+Date:   Thu Sep 30 18:30:37 2021 -0700
+
+    catalog/ingress: check backend's port in addition to name (#4202)
+    
+    Checks that the IngressBackend's port matches the TargetPort
+    of the service. This is important in deployments where there
+    are multiple MeshServices with the same name, in which case
+    the IngressBackend configuration corresponding to the service
+    name and port must be used. Multiple MeshService objects with
+    the same name and different port number will exist when there
+    is a k8s service with multiple ports per service.
+    
+    Without this change, IngressBackend configuration for a service
+    with multiple ports can result in conflicts where duplicate
+    configs are generated per MeshService.
+    
+    Signed-off-by: Shashank Ram <shashr2204@gmail.com>
+
+[33mcommit 6f9738e363b3969539a073f266a942394b06015b[m
+Merge: e856017e a93f5775
+Author: Jon Huhn <nojnhuh@users.noreply.github.com>
+Date:   Thu Sep 30 16:02:01 2021 -0500
+
+    Merge pull request #4198 from nojnhuh/publish-img-fix
+    
+    fix(build): check if windows tag exists correctly
+
+[33mcommit a93f57750d74c227d8afd17fdec3df8fde6726b9[m
+Author: Jon Huhn <johuhn@microsoft.com>
+Date:   Thu Sep 30 15:15:42 2021 -0500
+
+    fix(build): check if windows tag exists correctly
+    
+    Currently, when checking if a tag on a windows image exists, the linux
+    image is checked. This change fixes it so the windows image is checked
+    instead.
+    
+    Signed-off-by: Jon Huhn <johuhn@microsoft.com>
+
+[33mcommit e856017e2805a9d178d2fbbd38a7f29638d101c3[m
+Merge: 7076b8a0 e71bd60f
+Author: Sneha Chhabria <snchh@microsoft.com>
+Date:   Thu Sep 30 10:07:46 2021 -0700
+
+    Merge pull request #4194 from snehachhabria/fixBootstrapPort
+    
+    fix(bootstrapPort): Update the crd conversion webhook port on osm-bootstrap

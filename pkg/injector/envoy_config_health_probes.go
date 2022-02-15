@@ -1,10 +1,14 @@
 package injector
 
 import (
+	_ "embed" // required to embed resources
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/openservicemesh/osm/pkg/constants"
@@ -18,6 +22,8 @@ import (
 	xds_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	xds_route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	xds_accesslog "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/stream/v3"
+	xds_lua "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/lua/v3"
+	xds_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	xds_http_connection_manager "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	xds_tcp_proxy "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
 )
@@ -111,7 +117,67 @@ func getStartupListener(originalProbe *healthProbe) (*xds_listener.Listener, err
 
 func getProbeListener(listenerName, clusterName, newPath string, port int32, originalProbe *healthProbe) (*xds_listener.Listener, error) {
 	var filterChain *xds_listener.FilterChain
-	if originalProbe.isHTTP {
+	if originalProbe.isTCPSocket {
+		httpAccessLog, err := getHTTPAccessLog()
+		if err != nil {
+			return nil, err
+		}
+
+		/*wasmFilter, err := getTCPSocketProbeWASMFilter(string(originalProbe.port))
+		if err != nil {
+			return nil, err
+		}*/
+
+		luaFilter, err := getTcpSocketProberLuaFilter(string(originalProbe.port))
+		if err != nil {
+			return nil, err
+		}
+		/*pbWasmFilter, err := ptypes.MarshalAny(wasmFilter)
+		if err != nil {
+			log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrMarshallingXDSResource)).
+				Msgf("Error marshaling wasmFilter struct into an anypb.Any message")
+			return nil, err
+		}*/
+
+		httpConnectionManager := &xds_http_connection_manager.HttpConnectionManager{
+			CodecType:  xds_http_connection_manager.HttpConnectionManager_AUTO,
+			StatPrefix: "health_probes_http",
+			AccessLog: []*xds_accesslog_filter.AccessLog{
+				httpAccessLog,
+			},
+			RouteSpecifier: &xds_http_connection_manager.HttpConnectionManager_RouteConfig{
+				RouteConfig: &xds_route.RouteConfiguration{
+					Name: "local_route",
+					VirtualHosts: []*xds_route.VirtualHost{
+						getVirtualHost(newPath, clusterName, originalProbe.path, originalProbe.timeout),
+					},
+				},
+			},
+			HttpFilters: []*xds_hcm.HttpFilter{
+				luaFilter,
+				{
+					Name: "envoy.filters.http.router", // must be last filter in filter chain
+				},
+			},
+		}
+
+		pbHTTPConnectionManager, err := ptypes.MarshalAny(httpConnectionManager)
+		if err != nil {
+			log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrMarshallingXDSResource)).
+				Msgf("Error marshaling HttpConnectionManager struct into an anypb.Any message")
+			return nil, err
+		}
+		filterChain = &xds_listener.FilterChain{
+			Filters: []*xds_listener.Filter{
+				{
+					Name: "envoy.filters.network.http_connection_manager",
+					ConfigType: &xds_listener.Filter_TypedConfig{
+						TypedConfig: pbHTTPConnectionManager,
+					},
+				},
+			},
+		}
+	} else if originalProbe.isHTTP {
 		httpAccessLog, err := getHTTPAccessLog()
 		if err != nil {
 			return nil, err
@@ -198,6 +264,87 @@ func getProbeListener(listenerName, clusterName, newPath string, port int32, ori
 		},
 		FilterChains: []*xds_listener.FilterChain{
 			filterChain,
+		},
+	}, nil
+}
+
+/*
+//go:embed tcpsocketproberust.wasm
+var tcpSocketWASMBytes []byte
+
+func getTCPSocketProbeWASMFilter(port string) (*xds_hcm.HttpFilter, error) {
+	if len(tcpSocketWASMBytes) == 0 {
+		return nil, nil
+	}
+	// does the port need to be in a struct/ need to be encoded to JSONP
+	//protpb := &wrapperspb.StringValue{Value: port}
+	//protoAny, err := ptypes.MarshalAny(protpb)
+	//if err != nil {
+	//	return nil, errors.Wrap(err, "Error marshalling Wasm config")
+	//}
+
+	wasmPlug := &xds_wasm.Wasm{
+		Config: &xds_wasm_ext.PluginConfig{
+			Name: "tcpsocketprobe",
+			//Configuration: protoAny,
+			Vm: &xds_wasm_ext.PluginConfig_VmConfig{
+				VmConfig: &xds_wasm_ext.VmConfig{
+					Runtime: "envoy.wasm.runtime.v8",
+					Code: &envoy_config_core_v3.AsyncDataSource{
+						Specifier: &envoy_config_core_v3.AsyncDataSource_Local{
+							Local: &envoy_config_core_v3.DataSource{
+								Specifier: &envoy_config_core_v3.DataSource_InlineBytes{
+									InlineBytes: tcpSocketWASMBytes,
+								},
+							},
+						},
+					},
+					AllowPrecompiled: true,
+				},
+			},
+		},
+	}
+
+	wasmAny, err := ptypes.MarshalAny(wasmPlug)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error marshalling Wasm config")
+	}
+
+	return &xds_hcm.HttpFilter{
+		Name: "envoy.filters.http.wasm",
+		ConfigType: &xds_hcm.HttpFilter_TypedConfig{
+			TypedConfig: wasmAny,
+		},
+	}, nil
+}*/
+
+func getTcpSocketProberLuaFilter(port string) (*xds_hcm.HttpFilter, error) {
+	// TODO(jaellio): check port?
+	addCallsReq := &strings.Builder{}
+	addCallsReq.WriteString("--\nfunction envoy_on_request(request_handle)\n")
+	addCallsReq.WriteString(fmt.Sprintf("  local host, port = \"127.0.0.1\", %s\n", port))
+	addCallsReq.WriteString("  local socket = require(\"socket\")\n")
+	addCallsReq.WriteString("  local tcp = assert(socket.tcp())\n")
+	addCallsReq.WriteString("  tcp:connect(host, port)\n")
+	addCallsReq.WriteString("  tcp:close()\n")
+	addCallsReq.WriteString("  request_handle:respond(\n")
+	addCallsReq.WriteString("    {[\":status\"] = \"200\"},\n")
+	addCallsReq.WriteString("    \"works\")\n")
+	addCallsReq.WriteString("end")
+
+	lua := &xds_lua.Lua{
+		InlineCode: addCallsReq.String(),
+	}
+
+	luaAny, err := ptypes.MarshalAny(lua)
+	if err != nil {
+		return nil, errors.Wrap(err, "error marshaling Lua filter")
+	}
+
+	return &xds_hcm.HttpFilter{
+		Name: wellknown.Lua,
+		ConfigType: &xds_hcm.HttpFilter_TypedConfig{
+			TypedConfig: luaAny,
 		},
 	}, nil
 }
