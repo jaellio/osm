@@ -1,0 +1,17 @@
+
+
+1. If you have modified `wasmrust2/tcp-socket-probe/lib.rs` you must compile it to wasm
+    a. in `wasmrust2/tcp-socket-probe` run  `cargo build --target wasm32-unknown-unknown --release` (https://doc.rust-lang.org/cargo/getting-started/installation.html and add wasm32 target)
+    b. compress the wasm file `wasm-gc target/wasm32-unknown-unknown/release/tcpsocketproberust3.wasm`
+
+2. Modify `health_probes.go` or `envoy_config_health_probes.go`
+    a. in these files the injector builds the envoy config ad reconfigures the probes based on the pod spec
+
+3. Run the demo `./demo/run-osm-demo.sh`
+    a. Modify the script to work with your environment and set the envoy log level to trace (or whatever you are using in the filter)
+    a. This will install osm and deploy all apps. You can modify it to just deploy the bookwarehouse app (I am using this app because we already had a readiness probe using a tcp socket action defined)
+
+4. Check the `bookwarehouse/mysql-0` pod
+    a. `kubectl describe pod -n bookwarehouse mysql-0`
+    b. `kubeclt logs -n bookwarehouse        mysql-0 envoy`
+    c. if envoy was deployed successfully inspect the config - `kubectl port-forward -n bookwarehouse        mysql-0 15000:15000`

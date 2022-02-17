@@ -50,7 +50,7 @@ impl HttpContext for TcpSocketProbe {
     fn on_http_request_headers(&mut self, _: usize) -> Action {
         // Note: the port would not be hardcoded
         trace!("made it here");
-        if let Ok(stream) = TcpStream::connect("127.0.0.1:3306") {
+        if let Ok(stream) = TcpStream::connect("127.0.0.1:3306").unwrap() {
             trace!("made it here!!!");
             self.send_http_response(
                 200,
