@@ -170,8 +170,36 @@ func getProbeListener(listenerName, clusterName, newPath string, port int32, ori
 				Msgf("Error marshaling HttpConnectionManager struct into an anypb.Any message")
 			return nil, err
 		}
+
+		tcpAccessLog, err := getTCPAccessLog()
+		if err != nil {
+			return nil, err
+		}
+		tcpProxy := &xds_tcp_proxy.TcpProxy{
+			StatPrefix: "health_probes_tcp",
+			AccessLog: []*xds_accesslog_filter.AccessLog{
+				tcpAccessLog,
+			},
+			ClusterSpecifier: &xds_tcp_proxy.TcpProxy_Cluster{
+				Cluster: clusterName,
+			},
+		}
+
+		pbTCPProxy, err := ptypes.MarshalAny(tcpProxy)
+		if err != nil {
+			log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrMarshallingXDSResource)).
+				Msgf("Error marshaling TcpProxy struct into an anypb.Any message")
+			return nil, err
+		}
+
 		filterChain = &xds_listener.FilterChain{
 			Filters: []*xds_listener.Filter{
+				{
+					Name: wellknown.TCPProxy,
+					ConfigType: &xds_listener.Filter_TypedConfig{
+						TypedConfig: pbTCPProxy,
+					},
+				},
 				{
 					Name: "envoy.filters.network.http_connection_manager",
 					ConfigType: &xds_listener.Filter_TypedConfig{
