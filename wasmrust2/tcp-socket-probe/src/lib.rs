@@ -1,10 +1,12 @@
-use proxy_wasm::types;
-use proxy_wasm::traits;
+use proxy_wasm::traits::*;
+use proxy_wasm::types::*;
 use std::net::TcpStream;
+use log::trace;
 
 
 #[no_mangle]
 pub fn _start() {
+    proxy_wasm::set_log_level(LogLevel::Trace);
     proxy_wasm::set_root_context(|_| -> Box<dyn RootContext> {
         Box::new(TcpSocketProbeRoot {
             port: String::new(),
@@ -47,13 +49,16 @@ impl Context for TcpSocketProbe {}
 impl HttpContext for TcpSocketProbe {
     fn on_http_request_headers(&mut self, _: usize) -> Action {
         // Note: the port would not be hardcoded
-        if let Ok(_stream) = TcpStream::connect("127.0.0.1:3306") {
+        trace!("made it here");
+        if let Ok(stream) = TcpStream::connect("127.0.0.1:3306") {
+            trace!("made it here!!!");
             self.send_http_response(
                 200,
                 vec![("Powered-By", "proxy-wasm")],
                 Some(b"Connection established\n"),
             );
         } else {
+            trace!("made it here :(");
             self.send_http_response(
                 403,
                 vec![("Powered-By", "proxy-wasm")],

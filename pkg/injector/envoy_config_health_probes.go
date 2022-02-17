@@ -17,15 +17,18 @@ import (
 
 	xds_accesslog_filter "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	xds_cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	xds_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	xds_endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	xds_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	xds_route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	xds_accesslog "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/stream/v3"
 	xds_lua "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/lua/v3"
+	xds_wasm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/wasm/v3"
 	xds_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	xds_http_connection_manager "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	xds_tcp_proxy "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
+	xds_wasm_ext "github.com/envoyproxy/go-control-plane/envoy/extensions/wasm/v3"
 )
 
 const (
@@ -123,15 +126,15 @@ func getProbeListener(listenerName, clusterName, newPath string, port int32, ori
 			return nil, err
 		}
 
-		/*wasmFilter, err := getTCPSocketProbeWASMFilter(string(originalProbe.port))
-		if err != nil {
-			return nil, err
-		}*/
-
-		luaFilter, err := getTcpSocketProberLuaFilter(string(originalProbe.port))
+		wasmFilter, err := getTCPSocketProbeWASMFilter(string(originalProbe.port))
 		if err != nil {
 			return nil, err
 		}
+
+		/*luaFilter, err := getTcpSocketProberLuaFilter(string(originalProbe.port))
+		if err != nil {
+			return nil, err
+		}*/
 		/*pbWasmFilter, err := ptypes.MarshalAny(wasmFilter)
 		if err != nil {
 			log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrMarshallingXDSResource)).
@@ -154,7 +157,7 @@ func getProbeListener(listenerName, clusterName, newPath string, port int32, ori
 				},
 			},
 			HttpFilters: []*xds_hcm.HttpFilter{
-				luaFilter,
+				wasmFilter,
 				{
 					Name: "envoy.filters.http.router", // must be last filter in filter chain
 				},
@@ -268,8 +271,7 @@ func getProbeListener(listenerName, clusterName, newPath string, port int32, ori
 	}, nil
 }
 
-/*
-//go:embed tcpsocketproberust.wasm
+//go:embed tcpsocketproberust3.wasm
 var tcpSocketWASMBytes []byte
 
 func getTCPSocketProbeWASMFilter(port string) (*xds_hcm.HttpFilter, error) {
@@ -316,7 +318,7 @@ func getTCPSocketProbeWASMFilter(port string) (*xds_hcm.HttpFilter, error) {
 			TypedConfig: wasmAny,
 		},
 	}, nil
-}*/
+}
 
 func getTcpSocketProberLuaFilter(port string) (*xds_hcm.HttpFilter, error) {
 	// TODO(jaellio): check port?

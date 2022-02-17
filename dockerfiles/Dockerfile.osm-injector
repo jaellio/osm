@@ -6,7 +6,7 @@ ARG TARGETARCH
 
 WORKDIR /osm
 COPY . .
-COPY /wasmrust2/tcpsocketproberust.wasm pkg/injector
+COPY /wasmrust2/tcpsocketproberust3.wasm pkg/injector
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg \
     CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -v -o osm-injector -ldflags "$LDFLAGS" ./cmd/osm-injector
