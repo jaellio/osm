@@ -43,7 +43,7 @@ func NewMutatingWebhook(config Config, kubeClient kubernetes.Interface, certMana
 	// This is a certificate issued for the webhook handler
 	// This cert does not have to be related to the Envoy certs, but it does have to match
 	// the cert provisioned with the MutatingWebhookConfiguration
-	webhookHandlerCert, _, err := certManager.IssueCertificate(
+	webhookHandlerCert, err := certManager.IssueCertificate(
 		certificate.CommonName(fmt.Sprintf("%s.%s.svc", constants.OSMInjectorName, osmNamespace)),
 		constants.XDSCertificateValidityPeriod,
 		certificate.Webhook)

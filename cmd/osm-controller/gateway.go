@@ -38,7 +38,7 @@ func bootstrapOSMMulticlusterGateway(kubeClient kubernetes.Interface, certManage
 	}
 
 	gatewayCN := multicluster.GetMulticlusterGatewaySubjectCommonName(osmServiceAccount, osmNamespace)
-	bootstrapCert, _, err := certManager.IssueCertificate(gatewayCN, constants.XDSCertificateValidityPeriod, certificate.XDS)
+	bootstrapCert, err := certManager.IssueCertificate(gatewayCN, constants.XDSCertificateValidityPeriod, certificate.XDS)
 	if err != nil {
 		return errors.Errorf("Error issuing bootstrap certificate for OSM gateway: %s", err)
 	}

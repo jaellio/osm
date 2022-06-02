@@ -1,6 +1,7 @@
 package certificate
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -42,38 +43,32 @@ func NewManager(mrcClient MRCClient, getServiceCertValidityPeriod func() time.Du
 func (m *Manager) Start(checkInterval time.Duration, stop <-chan struct{}) {
 	ticker := time.NewTicker(checkInterval)
 	go func() {
-		m.checkAndRotateServiceCerts()
+		m.checkAndRotate()
 		for {
 			select {
 			case <-stop:
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				m.checkAndRotateServiceCerts()
+				m.checkAndRotate()
 			}
 		}
 	}()
 }
 
-func (m *Manager) checkAndRotateServiceCerts() {
+func (m *Manager) checkAndRotate() {
 	// NOTE: checkAndRotate can reintroduce a certificate that has been released, thereby creating an unbounded cache.
 	// A certificate can also have been rotated already, leaving the list of issued certs stale, and we re-rotate.
 	// the latter is not a bug, but a source of inefficiency.
 	for _, cert := range m.ListIssuedCertificates() {
-		if cert.GetCertificateType() != Service {
-			log.Debug().Msgf("Skipping check and rotate of cert %s of type %s since it is not of type Service",
-				cert.GetCommonName(),
-				cert.GetCertificateType())
-			continue
-		}
-
-		newCert, rotated, err := m.IssueCertificate(cert.GetCommonName(), m.serviceCertValidityDuration(), Service)
+		newCert, err := m.IssueCertificate(cert.GetCommonName(), m.serviceCertValidityDuration(), Service)
 		if err != nil {
 			// TODO(#3962): metric might not be scraped before process restart resulting from this error
 			log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrRotatingCert)).
 				Msgf("Error getting or issuing cert SerialNumber=%s", cert.GetSerialNumber())
 			continue
 		}
+		rotated := cert != newCert
 
 		word := map[bool]string{true: "was", false: "was not"}[rotated]
 		log.Trace().Msgf("Cert %s %s rotated; expires in %+v; renewBeforeCertExpires is %+v",
@@ -92,6 +87,13 @@ func (m *Manager) checkAndRotateServiceCerts() {
 			log.Debug().Msgf("Rotated certificate (old SerialNumber=%s) with new SerialNumber=%s", cert.SerialNumber, newCert.SerialNumber)
 		}
 	}
+}
+
+func (m *Manager) getValidityDurationFromCertType(c *Certificate) (time.Duration, error) {
+	if cert == nil {
+		return 0, fmt.Errorf("cannot determine certificate type from nil cert")
+	}
+	switch c.CertificateType
 }
 
 // getFromCache returns the certificate from the cache obtained using the certificate's CN.
@@ -138,11 +140,11 @@ func (m *Manager) ShouldRotate(cert *Certificate) bool {
 }
 
 // IssueCertificate implements Manager and returns a newly issued certificate from the given client.
-func (m *Manager) IssueCertificate(cn CommonName, validityPeriod time.Duration, ct CertificateType) (cert *Certificate, rotated bool, err error) {
-	cert = m.getFromCache(cn) // Don't call this while holding the lock
+func (m *Manager) IssueCertificate(cn CommonName, validityPeriod time.Duration, ct CertificateType) (*Certificate, error) {
+	cert := m.getFromCache(cn) // Don't call this while holding the lock
 
 	if cert != nil {
-		return
+		return cert, nil
 	}
 
 	start := time.Now()
@@ -151,15 +153,15 @@ func (m *Manager) IssueCertificate(cn CommonName, validityPeriod time.Duration, 
 	keyIssuer := m.keyIssuer
 	m.mu.RUnlock()
 
-	cert, err = keyIssuer.IssueCertificate(cn, validityPeriod)
+	cert, err := keyIssuer.IssueCertificate(cn, validityPeriod)
 	if err != nil {
-		return
+		return nil, err
 	}
 	var pubCert *Certificate
 	if pubIssuer.ID != keyIssuer.ID {
 		pubCert, err = pubIssuer.IssueCertificate(cn, validityPeriod)
 		if err != nil {
-			return
+			return nil, err
 		}
 
 		cert = cert.newMergedWithRoot(pubCert.GetIssuingCA())
@@ -170,13 +172,11 @@ func (m *Manager) IssueCertificate(cn CommonName, validityPeriod time.Duration, 
 
 	cert.CertificateType = ct
 
-	rotated = true
-
 	m.cache.Store(cn, cert)
 
 	log.Trace().Msgf("It took %s to issue certificate with SerialNumber=%s", time.Since(start), cert.GetSerialNumber())
 
-	return
+	return cert, nil
 }
 
 // ReleaseCertificate is called when a cert will no longer be needed and should be removed from the system.
