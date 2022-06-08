@@ -45,7 +45,7 @@ func NewMutatingWebhook(config Config, kubeClient kubernetes.Interface, certMana
 	// the cert provisioned with the MutatingWebhookConfiguration
 	webhookHandlerCert, err := certManager.IssueCertificate(
 		certificate.CommonName(fmt.Sprintf("%s.%s.svc", constants.OSMInjectorName, osmNamespace)),
-		constants.XDSCertificateValidityPeriod)
+		certificate.Internal)
 	if err != nil {
 		return errors.Errorf("Error issuing certificate for the mutating webhook: %+v", err)
 	}

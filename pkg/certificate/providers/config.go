@@ -80,7 +80,7 @@ func NewCertificateManager(kubeClient kubernetes.Interface, kubeConfig *rest.Con
 		mrcClient.MRCProviderGenerator.DefaultVaultToken = vaultOption.VaultToken
 	}
 
-	return certificate.NewManager(mrcClient, cfg.GetServiceCertValidityPeriod(), msgBroker)
+	return certificate.NewManager(mrcClient, cfg.GetServiceCertValidityPeriod, cfg.GetIngressGatewayCertValidityPeriod, msgBroker)
 }
 
 // GetCertIssuerForMRC returns a certificate.Issuer generated from the provided MRC.

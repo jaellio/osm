@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -30,7 +29,7 @@ func TestSetupMutualTLS(t *testing.T) {
 	}
 
 	certManager := tresorFake.NewFake(nil)
-	adsCert, err := certManager.IssueCertificate("fake-ads", time.Hour)
+	adsCert, err := certManager.IssueCertificate("fake-ads", certificate.Internal)
 
 	assert.NoError(err)
 
@@ -69,7 +68,7 @@ func TestValidateClient(t *testing.T) {
 
 	certManager := tresorFake.NewFake(nil)
 	cn := certificate.CommonName(fmt.Sprintf("%s.%s.%s", uuid.New(), tests.BookstoreServiceAccountName, tests.Namespace))
-	certPEM, _ := certManager.IssueCertificate(cn, 1*time.Hour)
+	certPEM, _ := certManager.IssueCertificate(cn, certificate.Internal)
 	cert, _ := certificate.DecodePEMCertificate(certPEM.GetCertificateChain())
 
 	goodCommonNameMapping := map[string]interface{}{string(cn): cn}

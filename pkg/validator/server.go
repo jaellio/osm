@@ -40,7 +40,7 @@ func NewValidatingWebhook(webhookConfigName, osmNamespace, osmVersion, meshName 
 	// the cert provisioned with the ValidatingWebhookConfiguration
 	webhookHandlerCert, err := certManager.IssueCertificate(
 		certificate.CommonName(fmt.Sprintf("%s.%s.svc", ValidatorWebhookSvc, osmNamespace)),
-		constants.XDSCertificateValidityPeriod)
+		certificate.Internal)
 	if err != nil {
 		return errors.Errorf("Error issuing certificate for the validating webhook: %+v", err)
 	}

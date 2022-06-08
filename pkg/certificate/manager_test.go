@@ -11,26 +11,86 @@ import (
 	"github.com/openservicemesh/osm/pkg/messaging"
 )
 
+func TestShouldRotate(t *testing.T) {
+	manager := &Manager{}
+
+	testCases := []struct {
+		name             string
+		cert             *Certificate
+		managerKeyIssuer *issuer
+		managerPubIssuer *issuer
+		expectedRotation bool
+	}{
+		{
+			name: "Expired certificate",
+			cert: &Certificate{
+				Expiration:         time.Now().Add(-1 * time.Hour),
+				signingIssuerID:    "1",
+				validatingIssuerID: "1",
+			},
+			managerKeyIssuer: &issuer{ID: "1"},
+			managerPubIssuer: &issuer{ID: "1"},
+			expectedRotation: true,
+		},
+		{
+			name: "Mismatched certificate",
+			cert: &Certificate{
+				Expiration:         time.Now().Add(1 * time.Hour),
+				signingIssuerID:    "1",
+				validatingIssuerID: "2",
+			},
+			managerKeyIssuer: &issuer{ID: "2"},
+			managerPubIssuer: &issuer{ID: "1"},
+			expectedRotation: true,
+		},
+		{
+			name: "Valid certificate",
+			cert: &Certificate{
+				Expiration:         time.Now().Add(1 * time.Hour),
+				signingIssuerID:    "1",
+				validatingIssuerID: "1",
+			},
+			managerKeyIssuer: &issuer{ID: "1"},
+			managerPubIssuer: &issuer{ID: "1"},
+			expectedRotation: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert := tassert.New(t)
+
+			manager.signingIssuer = tc.managerKeyIssuer
+			manager.validatingIssuer = tc.managerPubIssuer
+
+			rotate := manager.shouldRotate(tc.cert)
+			assert.Equal(tc.expectedRotation, rotate)
+		})
+	}
+}
+
 func TestRotor(t *testing.T) {
 	assert := tassert.New(t)
 
 	cn := CommonName("foo")
-	validityPeriod := -1 * time.Hour // negative time means this cert has already expired -- will be rotated asap
+	// negative time means this cert has already expired -- will be rotated asap
+	getServiceCertValidityPeriod := func() time.Duration { return -1 * time.Hour }
+	getIngressGatewayCertValidityPeriod := func() time.Duration { return -1 * time.Hour }
 
 	stop := make(chan struct{})
 	defer close(stop)
 	msgBroker := messaging.NewBroker(stop)
-	certManager, err := NewManager(&fakeMRCClient{}, validityPeriod, msgBroker)
+	certManager, err := NewManager(&fakeMRCClient{}, getServiceCertValidityPeriod, getIngressGatewayCertValidityPeriod, msgBroker)
 	certManager.Start(5*time.Second, stop)
 	assert.NoError(err)
 
-	certA, err := certManager.IssueCertificate(cn, validityPeriod)
+	certA, err := certManager.IssueCertificate(cn, Service)
 	assert.NoError(err)
 	certRotateChan := msgBroker.GetCertPubSub().Sub(announcements.CertificateRotated.String())
 
 	// Wait for two certificate rotations to be announced and terminate
 	<-certRotateChan
-	newCert, err := certManager.IssueCertificate(cn, validityPeriod)
+	newCert, err := certManager.IssueCertificate(cn, Service)
 	assert.NoError(err)
 	assert.NotEqual(certA.GetExpiration(), newCert.GetExpiration())
 	assert.NotEqual(certA, newCert)
@@ -112,16 +172,18 @@ func TestListIssuedCertificate(t *testing.T) {
 
 func TestIssueCertificate(t *testing.T) {
 	cn := CommonName("fake-cert-cn")
+	getServiceValidityDuration := func() time.Duration { return time.Minute }
 	assert := tassert.New(t)
 
 	t.Run("single key issuer", func(t *testing.T) {
 		cm := &Manager{
+			serviceCertValidityDuration: getServiceValidityDuration,
 			// The root certificate signing all newly issued certificates
 			signingIssuer:    &issuer{ID: "id1", Issuer: &fakeIssuer{id: "id1"}, CertificateAuthority: pem.RootCertificate("id1")},
 			validatingIssuer: &issuer{ID: "id1", Issuer: &fakeIssuer{id: "id1"}, CertificateAuthority: pem.RootCertificate("id1")},
 		}
 		// single signingIssuer, not cached
-		cert1, err := cm.IssueCertificate(cn, time.Minute)
+		cert1, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.NotNil(cert1)
 		assert.Equal(cert1.signingIssuerID, "id1")
@@ -129,7 +191,7 @@ func TestIssueCertificate(t *testing.T) {
 		assert.Equal(cert1.GetIssuingCA(), pem.RootCertificate("id1"))
 
 		// single signingIssuer cached
-		cert2, err := cm.IssueCertificate(cn, time.Minute)
+		cert2, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.Equal(cert1, cert2)
 
@@ -138,7 +200,7 @@ func TestIssueCertificate(t *testing.T) {
 		cm.signingIssuer = &issuer{ID: "id2", Issuer: &fakeIssuer{id: "id2"}, CertificateAuthority: pem.RootCertificate("id2")}
 		cm.validatingIssuer = &issuer{ID: "id2", Issuer: &fakeIssuer{id: "id2"}, CertificateAuthority: pem.RootCertificate("id2")}
 
-		cert3, err := cm.IssueCertificate(cn, time.Minute)
+		cert3, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.NotNil(cert3)
 		assert.Equal(cert3.signingIssuerID, "id2")
@@ -149,13 +211,14 @@ func TestIssueCertificate(t *testing.T) {
 
 	t.Run("2 issuers", func(t *testing.T) {
 		cm := &Manager{
+			serviceCertValidityDuration: getServiceValidityDuration,
 			// The root certificate signing all newly issued certificates
 			signingIssuer:    &issuer{ID: "id1", Issuer: &fakeIssuer{id: "id1"}, CertificateAuthority: pem.RootCertificate("id1")},
 			validatingIssuer: &issuer{ID: "id2", Issuer: &fakeIssuer{id: "id2"}, CertificateAuthority: pem.RootCertificate("id2")},
 		}
 
 		// Not cached
-		cert1, err := cm.IssueCertificate(cn, time.Minute)
+		cert1, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.NotNil(cert1)
 		assert.Equal(cert1.signingIssuerID, "id1")
@@ -164,13 +227,13 @@ func TestIssueCertificate(t *testing.T) {
 		assert.Equal(pem.RootCertificate("id1id2"), cert1.GetTrustedCAs())
 
 		// cached
-		cert2, err := cm.IssueCertificate(cn, time.Minute)
+		cert2, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.Equal(cert1, cert2)
 
 		// cached, but validatingIssuer is removed
 		cm.validatingIssuer = cm.signingIssuer
-		cert3, err := cm.IssueCertificate(cn, time.Minute)
+		cert3, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.NotEqual(cert1, cert3)
 		assert.Equal(cert3.signingIssuerID, "id1")
@@ -179,7 +242,7 @@ func TestIssueCertificate(t *testing.T) {
 
 		// cached, but signingIssuer is old
 		cm.signingIssuer = &issuer{ID: "id2", Issuer: &fakeIssuer{id: "id2"}, CertificateAuthority: pem.RootCertificate("id2")}
-		cert4, err := cm.IssueCertificate(cn, time.Minute)
+		cert4, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.NotEqual(cert3, cert4)
 		assert.Equal(cert4.signingIssuerID, "id2")
@@ -189,7 +252,7 @@ func TestIssueCertificate(t *testing.T) {
 
 		// cached, but validatingIssuer is old
 		cm.validatingIssuer = &issuer{ID: "id3", Issuer: &fakeIssuer{id: "id3"}, CertificateAuthority: pem.RootCertificate("id3")}
-		cert5, err := cm.IssueCertificate(cn, time.Minute)
+		cert5, err := cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.NotEqual(cert4, cert5)
 		assert.Equal(cert5.signingIssuerID, "id2")
@@ -200,19 +263,20 @@ func TestIssueCertificate(t *testing.T) {
 
 	t.Run("bad issuers", func(t *testing.T) {
 		cm := &Manager{
+			serviceCertValidityDuration: getServiceValidityDuration,
 			// The root certificate signing all newly issued certificates
 			signingIssuer:    &issuer{ID: "id1", Issuer: &fakeIssuer{id: "id1", err: true}, CertificateAuthority: pem.RootCertificate("id1")},
 			validatingIssuer: &issuer{ID: "id2", Issuer: &fakeIssuer{id: "id2", err: true}, CertificateAuthority: pem.RootCertificate("id2")},
 		}
 
 		// bad signingIssuer
-		cert, err := cm.IssueCertificate(cn, time.Minute)
+		cert, err := cm.IssueCertificate(cn, Service)
 		assert.Nil(cert)
 		assert.EqualError(err, "id1 failed")
 
 		// bad validatingIssuer (should still succeed)
 		cm.signingIssuer = &issuer{ID: "id3", Issuer: &fakeIssuer{id: "id3"}, CertificateAuthority: pem.RootCertificate("id3")}
-		cert, err = cm.IssueCertificate(cn, time.Minute)
+		cert, err = cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.Equal(cert.signingIssuerID, "id3")
 		assert.Equal(cert.validatingIssuerID, "id2")
@@ -221,13 +285,13 @@ func TestIssueCertificate(t *testing.T) {
 
 		// insert a cached cert
 		cm.validatingIssuer = cm.signingIssuer
-		cert, err = cm.IssueCertificate(cn, time.Minute)
+		cert, err = cm.IssueCertificate(cn, Service)
 		assert.NoError(err)
 		assert.NotNil(cert)
 
 		// bad signing cert on an existing cached cert, because the signingIssuer is new
 		cm.signingIssuer = &issuer{ID: "id1", Issuer: &fakeIssuer{id: "id1", err: true}, CertificateAuthority: pem.RootCertificate("id1")}
-		cert, err = cm.IssueCertificate(cn, time.Minute)
+		cert, err = cm.IssueCertificate(cn, Service)
 		assert.EqualError(err, "id1 failed")
 		assert.Nil(cert)
 	})
