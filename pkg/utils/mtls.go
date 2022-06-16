@@ -13,82 +13,90 @@ import (
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 
+	"github.com/openservicemesh/osm/pkg/announcements"
 	"github.com/openservicemesh/osm/pkg/certificate"
+	"github.com/openservicemesh/osm/pkg/k8s/events"
+	"github.com/openservicemesh/osm/pkg/messaging"
 )
 
-type CertReloader struct {
-	certManager *certificate.Manager
+// TODO(jaellio): add a stop channel?
+type certReloader struct {
+	msgBroker *messaging.Broker
 	//	certMu      sync.RWMutex
 	//	cert        *tls.Certificate
-	cn        certificate.CommonName
-	configMu  sync.RWMutex
-	mutConfig *tls.Config
+	serverName string
+	cn         certificate.CommonName
+	configMu   sync.RWMutex
+	mutConfig  *tls.Config
 }
 
-func (cr *CertReloader) getCertificate(h *tls.ClientHelloInfo) (*tls.Certificate, error) {
-	cr.certMu.RLock()
-	defer cr.certMu.RUnlock()
-	return cr.cert, nil
-}
-
-func NewCertReloader(certManager *certificate.Manager, cert *certificate.Certificate) (*CertReloader, error) {
-	tlsCert, err := tls.X509KeyPair(cert.GetCertificateChain(), cert.GetPrivateKey())
+func newCertReloader(msgBroker *messaging.Broker, insecure bool, serverName string, cn certificate.CommonName, certPem []byte, keyPem []byte, ca []byte) (*certReloader, error) {
+	// GetDefaultTLSConfig
+	config, err := getDefaultTLSConfig(insecure, serverName, certPem, keyPem, ca)
 	if err != nil {
 		return nil, err
 	}
 
-	// GetDefaultTLSConfig
-	config := getDefaultTLSConfig(cert)
-
-	return &CertReloader{
-		certManager: certManager,
+	log.Debug().Msgf("Created certificate reloader for the %s server", serverName)
+	return &certReloader{
 		//cert:        &tlsCert,
-		cn:        cert.GetCommonName(),
-		mutConfig: config,
+		serverName: serverName,
+		msgBroker:  msgBroker,
+		cn:         cn,
+		mutConfig:  config,
 	}, nil
 }
 
-func (cr *CertReloader) GetCertificate(h *tls.ClientHelloInfo) (*tls.Certificate, error) {
+func (cr *certReloader) start() {
 	// https://stackoverflow.com/questions/37473201/is-there-a-way-to-update-the-tls-certificates-in-a-net-http-server-without-any-d
-	if !cr.certManager.ShouldRotateCertificate(cr.cn) { //|| cr..ShouldRotate() {
-		cr.certMu.RLock()
-		defer cr.certMu.RUnlock()
-		return cr.cert, nil
+
+	// Register for certificate rotation updates
+	certPubSub := cr.msgBroker.GetCertPubSub()
+	certRotateChan := certPubSub.Sub(announcements.CertificateRotated.String())
+	defer cr.msgBroker.Unsub(certPubSub, certRotateChan)
+
+	for {
+		select {
+		case certRotateMsg := <-certRotateChan:
+			cert := certRotateMsg.(events.PubSubMessage).NewObj.(*certificate.Certificate)
+			// check if the rotated cert is the ads server certificate
+			if cert.GetCommonName() != cr.cn {
+				continue
+			}
+
+			newCert, err := tls.X509KeyPair(cert.GetCertificateChain(), cert.GetPrivateKey())
+			if err != nil {
+				// TODO(jaellio): Should this error or just log an error?
+				log.Error().Msgf("[grpc][mTLS][%s] Failed loading rotated Certificate (%s)", cr.serverName, cert.GetCommonName())
+				continue
+			}
+			certPool := x509.NewCertPool()
+
+			// Load the set of Root CAs
+			if ok := certPool.AppendCertsFromPEM(cert.GetTrustedCAs()); !ok {
+				log.Error().Msgf("[grpc][mTLS][%s] Failed to append client certs during rotation of Certificate (%s)", cr.serverName, cert.GetCommonName())
+				continue
+			}
+
+			// TODO(jaellio): should I instead make only the certificates and clientCAs mutable and save those in the cert reloader?
+			cr.configMu.RLock()
+			cr.mutConfig.ClientCAs = certPool
+			cr.mutConfig.Certificates = []tls.Certificate{newCert}
+			cr.configMu.RUnlock()
+
+			log.Debug().Msgf("[grpc][mTLS][%s] Successfully updated tls config with rotated Certificate (%s)", cr.serverName, cert.GetCommonName())
+		}
+		// TODO(jaellio): stop/quit chan
 	}
-	cert, rotated, err := cr.certManager.IssueCertificate(cr.cn, constants.XDSCertificateValidityPeriod, certificate.ADS)
-	if err != nil {
-		return nil, err
-	}
-	if !rotated {
-		cr.certMu.RLock()
-		defer cr.certMu.RUnlock()
-		return cr.cert, nil
-	}
-	newCert, err := tls.X509KeyPair(cert.GetCertificateChain(), cert.GetPrivateKey())
-	if err != nil {
-		// TODO(jaellio): Should we be logging certificates?
-		return nil, err
-	}
-	cr.certMu.RLock()
-	defer cr.certMu.RUnlock()
-	cr.cert = &newCert
-	return cr.cert, nil
 }
 
-func (cr *CertReloader) GetConfigForClient(h *tls.ClientHelloInfo) (*tls.Config, error) {
+func (cr *certReloader) GetConfigForClient(h *tls.ClientHelloInfo) (*tls.Config, error) {
 	cr.configMu.RLock()
 	defer cr.configMu.RUnlock()
 	return cr.mutConfig, nil
 }
 
-func setupMutualTLS(insecure bool, serverName string, cr CertReloader) (grpc.ServerOption, error) {
-	certPool := x509.NewCertPool()
-
-	// Load the set of Root CAs
-	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-		return nil, errors.Errorf("[grpc][mTLS][%s] Failed to append client certs", serverName)
-	}
-
+func setupMutualTLS(insecure bool, serverName string, cr *certReloader) (grpc.ServerOption, error) {
 	// #nosec G402
 	tlsConfig := tls.Config{
 		InsecureSkipVerify: insecure,
@@ -102,7 +110,7 @@ func setupMutualTLS(insecure bool, serverName string, cr CertReloader) (grpc.Ser
 	return grpc.Creds(credentials.NewTLS(&tlsConfig)), nil
 }
 
-func getDefaultTLSConfig(cert *certificate.Certificate) (*tls.Config, error) {
+func getDefaultTLSConfig(insecure bool, serverName string, certPem []byte, keyPem []byte, ca []byte) (*tls.Config, error) {
 	certif, err := tls.X509KeyPair(certPem, keyPem)
 	if err != nil {
 		return nil, errors.Errorf("[grpc][mTLS][%s] Failed loading Certificate (%+v) and Key (%+v) PEM files", serverName, certPem, keyPem)
@@ -125,31 +133,6 @@ func getDefaultTLSConfig(cert *certificate.Certificate) (*tls.Config, error) {
 		MinVersion:         tls.VersionTLS13,
 	}
 	return &tlsConfig, nil
-}
-
-func setupMutualTLS(insecure bool, serverName string, certPem []byte, keyPem []byte, ca []byte) (grpc.ServerOption, error) {
-	certif, err := tls.X509KeyPair(certPem, keyPem)
-	if err != nil {
-		return nil, errors.Errorf("[grpc][mTLS][%s] Failed loading Certificate (%+v) and Key (%+v) PEM files", serverName, certPem, keyPem)
-	}
-
-	certPool := x509.NewCertPool()
-
-	// Load the set of Root CAs
-	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-		return nil, errors.Errorf("[grpc][mTLS][%s] Failed to append client certs", serverName)
-	}
-
-	// #nosec G402
-	tlsConfig := tls.Config{
-		InsecureSkipVerify: insecure,
-		ServerName:         serverName,
-		ClientAuth:         tls.RequireAndVerifyClientCert,
-		Certificates:       []tls.Certificate{certif},
-		ClientCAs:          certPool,
-		MinVersion:         tls.VersionTLS13,
-	}
-	return grpc.Creds(credentials.NewTLS(&tlsConfig)), nil
 }
 
 // ValidateClient ensures that the connected client is authorized to connect to the gRPC server.

@@ -6,6 +6,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/openservicemesh/osm/pkg/certificate"
+	"github.com/openservicemesh/osm/pkg/messaging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -16,7 +18,7 @@ const (
 )
 
 // NewGrpc creates a new gRPC server
-func NewGrpc(serverType string, port int, certPem, keyPem, rootCertPem []byte) (*grpc.Server, net.Listener, error) {
+func NewGrpc(msgBroker *messaging.Broker, serverType string, port int, certCN certificate.CommonName, certPem, keyPem, rootCertPem []byte) (*grpc.Server, net.Listener, error) {
 	log.Info().Msgf("Setting up %s gRPC server...", serverType)
 	addr := fmt.Sprintf(":%d", port)
 	lis, err := net.Listen("tcp", addr)
@@ -34,7 +36,15 @@ func NewGrpc(serverType string, port int, certPem, keyPem, rootCertPem []byte) (
 		}),
 	}
 
-	mutualTLS, err := setupMutualTLS(false, serverType, certPem, keyPem, rootCertPem)
+	cr, err := newCertReloader(msgBroker, false, serverType, certCN, certPem, keyPem, rootCertPem)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// start the cert reloader
+	go cr.start()
+
+	mutualTLS, err := setupMutualTLS(false, serverType, cr)
 	if err != nil {
 		log.Error().Err(err).Msg("Error setting up mutual tls for GRPC server")
 		return nil, nil, err
