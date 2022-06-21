@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -14,7 +15,11 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	configv1alpha2 "github.com/openservicemesh/osm/pkg/apis/config/v1alpha2"
 	policyv1alpha1 "github.com/openservicemesh/osm/pkg/apis/policy/v1alpha1"
+	configClientset "github.com/openservicemesh/osm/pkg/gen/client/config/clientset/versioned"
 
 	"github.com/openservicemesh/osm/pkg/constants"
 	"github.com/openservicemesh/osm/pkg/policy"
@@ -67,6 +72,10 @@ type validateFunc func(req *admissionv1.AdmissionRequest) (*admissionv1.Admissio
 // policyValidator is a validator that has access to a policy
 type policyValidator struct {
 	policyClient policy.Controller
+}
+
+type configValidator struct {
+	configClient *configClientset.Clientset
 }
 
 func trafficTargetValidator(req *admissionv1.AdmissionRequest) (*admissionv1.AdmissionResponse, error) {
@@ -244,6 +253,28 @@ func (kc *policyValidator) upstreamTrafficSettingValidator(req *admissionv1.Admi
 	if matchingUpstreamTrafficSetting := kc.policyClient.GetUpstreamTrafficSetting(opt); matchingUpstreamTrafficSetting != nil && matchingUpstreamTrafficSetting.Name != upstreamTrafficSetting.Name {
 		// duplicate detected
 		return nil, errors.Errorf("UpstreamTrafficSetting %s/%s conflicts with %s/%s since they have the same host %s", ns, upstreamTrafficSetting.ObjectMeta.GetName(), ns, matchingUpstreamTrafficSetting.ObjectMeta.GetName(), matchingUpstreamTrafficSetting.Spec.Host)
+	}
+
+	return nil, nil
+}
+
+func (cv *configValidator) meshRootCertificateValidator(req *admissionv1.AdmissionRequest) (*admissionv1.AdmissionResponse, error) {
+	meshRootCertificate := &configv1alpha2.MeshRootCertificate{}
+	if err := json.NewDecoder(bytes.NewBuffer(req.Object.Raw)).Decode(meshRootCertificate); err != nil {
+		return nil, err
+	}
+
+	// need control plane namespace, for now const
+	ns := "temp-ns"
+
+	// list mrcs
+	mrcs, err := cv.configClient.ConfigV1alpha2().MeshRootCertificates(ns).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, mrc := range mrcs.Items {
+		// Do whatever
 	}
 
 	return nil, nil

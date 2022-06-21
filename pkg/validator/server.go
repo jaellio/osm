@@ -13,8 +13,11 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/client-go/kubernetes"
 
+	configv1alpha2 "github.com/openservicemesh/osm/pkg/apis/config/v1alpha2"
 	policyv1alpha1 "github.com/openservicemesh/osm/pkg/apis/policy/v1alpha1"
 	"github.com/openservicemesh/osm/pkg/policy"
+
+	configClientset "github.com/openservicemesh/osm/pkg/gen/client/config/clientset/versioned"
 
 	"github.com/openservicemesh/osm/pkg/certificate"
 	"github.com/openservicemesh/osm/pkg/constants"
@@ -34,7 +37,7 @@ type validatingWebhookServer struct {
 }
 
 // NewValidatingWebhook returns a validatingWebhookServer with the defaultValidators that were previously registered.
-func NewValidatingWebhook(webhookConfigName, osmNamespace, osmVersion, meshName string, enableReconciler, validateTrafficTarget bool, port int, certManager *certificate.Manager, kubeClient kubernetes.Interface, policyClient policy.Controller, stop <-chan struct{}) error {
+func NewValidatingWebhook(webhookConfigName, osmNamespace, osmVersion, meshName string, enableReconciler, validateTrafficTarget bool, port int, certManager *certificate.Manager, kubeClient kubernetes.Interface, configClient *configClientset.Clientset, policyClient policy.Controller, stop <-chan struct{}) error {
 	// This is a certificate issued for the webhook handler
 	// This cert does not have to be related to the Envoy certs, but it does have to match
 	// the cert provisioned with the ValidatingWebhookConfiguration
@@ -49,12 +52,17 @@ func NewValidatingWebhook(webhookConfigName, osmNamespace, osmVersion, meshName 
 		policyClient: policyClient,
 	}
 
+	cv := &configValidator{
+		configClient: configClient,
+	}
+
 	v := &validatingWebhookServer{
 		validators: map[string]validateFunc{
 			policyv1alpha1.SchemeGroupVersion.WithKind("IngressBackend").String():         kv.ingressBackendValidator,
 			policyv1alpha1.SchemeGroupVersion.WithKind("Egress").String():                 egressValidator,
 			policyv1alpha1.SchemeGroupVersion.WithKind("UpstreamTrafficSetting").String(): kv.upstreamTrafficSettingValidator,
 			smiAccess.SchemeGroupVersion.WithKind("TrafficTarget").String():               trafficTargetValidator,
+			configv1alpha2.SchemeGroupVersion.WithKind("MeshRootCertificate").String():    cv.meshRootCertificateValidator,
 		},
 	}
 
