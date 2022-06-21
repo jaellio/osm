@@ -34,7 +34,7 @@ type validatingWebhookServer struct {
 }
 
 // NewValidatingWebhook returns a validatingWebhookServer with the defaultValidators that were previously registered.
-func NewValidatingWebhook(webhookConfigName, osmNamespace, osmVersion, meshName string, enableReconciler, validateTrafficTarget bool, port int, certManager *certificate.Manager, kubeClient kubernetes.Interface, policyClient policy.Controller, stop <-chan struct{}) error {
+func NewValidatingWebhook(webhookConfigName, osmNamespace, osmVersion, meshName string, enableReconciler, validateTrafficTarget bool, port int, certManager *certificate.Manager, mrcClient certificate.MRCClient, kubeClient kubernetes.Interface, policyClient policy.Controller, stop <-chan struct{}) error {
 	// This is a certificate issued for the webhook handler
 	// This cert does not have to be related to the Envoy certs, but it does have to match
 	// the cert provisioned with the ValidatingWebhookConfiguration
@@ -49,12 +49,17 @@ func NewValidatingWebhook(webhookConfigName, osmNamespace, osmVersion, meshName 
 		policyClient: policyClient,
 	}
 
+	mrcValidator := &mrcValidator{
+		mrcClient: mrcClient,
+	}
+
 	v := &validatingWebhookServer{
 		validators: map[string]validateFunc{
 			policyv1alpha1.SchemeGroupVersion.WithKind("IngressBackend").String():         kv.ingressBackendValidator,
 			policyv1alpha1.SchemeGroupVersion.WithKind("Egress").String():                 egressValidator,
 			policyv1alpha1.SchemeGroupVersion.WithKind("UpstreamTrafficSetting").String(): kv.upstreamTrafficSettingValidator,
 			smiAccess.SchemeGroupVersion.WithKind("TrafficTarget").String():               trafficTargetValidator,
+			mrcdsjkfdgkjf: mrcValidator.meshRootCertificateValidator,
 		},
 	}
 

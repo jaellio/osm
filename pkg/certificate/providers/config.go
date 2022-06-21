@@ -41,10 +41,8 @@ var getCA func(certificate.Issuer) (pem.RootCertificate, error) = func(i certifi
 	return cert.GetIssuingCA(), nil
 }
 
-// NewCertificateManager returns a new certificate manager, with an MRC compat client.
-// TODO(4713): Use an informer behind a feature flag.
-func NewCertificateManager(ctx context.Context, kubeClient kubernetes.Interface, kubeConfig *rest.Config, cfg configurator.Configurator,
-	providerNamespace string, options Options, msgBroker *messaging.Broker, ic *informers.InformerCollection, checkInterval time.Duration) (*certificate.Manager, error) {
+func NewMRCClient(ctx context.Context, kubeClient kubernetes.Interface, kubeConfig *rest.Config, cfg configurator.Configurator,
+	providerNamespace string, options Options, msgBroker *messaging.Broker, ic *informers.InformerCollection, checkInterval time.Duration) (*certificate.MRCClient, error) {
 	if err := options.Validate(); err != nil {
 		return nil, err
 	}
@@ -99,7 +97,12 @@ func NewCertificateManager(ctx context.Context, kubeClient kubernetes.Interface,
 
 		mrcClient = c
 	}
+	return mrcClient
+}
 
+// NewCertificateManager returns a new certificate manager, with an MRC compat client.
+// TODO(4713): Use an informer behind a feature flag.
+func NewCertificateManager(ctx context.Context, cfg configurator.Configurator, msgBroker *messaging.Broker, mrcClient certificate.MRCClient, checkInterval time.Duration) (*certificate.Manager, error) {
 	return certificate.NewManager(ctx, mrcClient, cfg.GetServiceCertValidityPeriod(), msgBroker, checkInterval)
 }
 

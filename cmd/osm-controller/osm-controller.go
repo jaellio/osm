@@ -207,8 +207,14 @@ func main() {
 	}
 
 	// Intitialize certificate manager/provider
-	certManager, err := providers.NewCertificateManager(ctx, kubeClient, kubeConfig, cfg, osmNamespace,
+
+	mrcClient, err := providers.NewMRCClient(ctx, kubeClient, kubeConfig, cfg, osmNamespace,
 		certOpts, msgBroker, informerCollection, 5*time.Second)
+	if err != nil {
+		events.GenericEventRecorder().FatalEvent(err, events.InvalidCertificateManager,
+			"Error fetching certificate manager of kind %s", certProviderKind)
+	}
+	certManager, err := providers.NewCertificateManager(ctx, cfg, msgBroker, *mrcClient, 5*time.Second)
 
 	if err != nil {
 		events.GenericEventRecorder().FatalEvent(err, events.InvalidCertificateManager,
