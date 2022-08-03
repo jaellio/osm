@@ -29,8 +29,14 @@ const (
 	// MutatingWebhookName is the name of the mutating webhook used for sidecar injection
 	MutatingWebhookName = "osm-inject.k8s.io"
 
+	// ControlPlaneMutatingWebhookName is the name of the mutating webhook used for sidecar injection
+	ControlPlaneMutatingWebhookName = "osm-control-plane-inject.k8s.io"
+
 	// webhookCreatePod is the HTTP path at which the webhook expects to receive pod creation events
 	webhookCreatePod = "/mutate-pod-creation"
+
+	// webhookCreateMeshRootCertificate is the HTTP path at which the webhook expects to receive MRC creation events
+	mutateWebhook = "/mutate"
 
 	bootstrapSecretPrefix = "envoy-bootstrap-config-"
 )
@@ -59,7 +65,8 @@ func NewMutatingWebhook(ctx context.Context, kubeClient kubernetes.Interface, ce
 
 	// Start the MutatingWebhook web server
 	srv, err := webhook.NewServer(constants.OSMInjectorName, osmNamespace, constants.InjectorWebhookPort, certManager, map[string]http.HandlerFunc{
-		webhookCreatePod: http.HandlerFunc(wh.podCreationHandler),
+		webhookCreatePod: wh.podCreationHandler,
+		mutateWebhook:    wh.mutateHandler,
 	},
 		func(cert *certificate.Certificate) error {
 			if err := createOrUpdateMutatingWebhook(kubeClient, cert, webhookTimeout, webhookConfigName, meshName, osmNamespace, osmVersion, enableReconciler); err != nil {
@@ -93,6 +100,25 @@ func (wh *mutatingWebhook) getAdmissionReqResp(proxyUUID uuid.UUID, admissionReq
 	webhook.RecordAdmissionMetrics(admissionReq.Request, admissionResp.Response)
 
 	return
+}
+
+func (wh *mutatingWebhook) mutateHandler(w http.ResponseWriter, req *http.Request) {
+	log.Trace().Msgf("Received mutating webhook request: Method=%v, URL=%v", req.Method, req.URL)
+
+	if contentType := req.Header.Get(webhook.HTTPHeaderContentType); contentType != webhook.ContentTypeJSON {
+		err := fmt.Errorf("Invalid content type %s; Expected %s", contentType, webhook.ContentTypeJSON)
+		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
+		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrInvalidAdmissionReqHeader)).
+			Msgf("Responded to admission request with HTTP %v", http.StatusUnsupportedMediaType)
+		return
+	}
+
+	admissionRequestBody, err := webhook.GetAdmissionRequestBody(w, req)
+	if err != nil {
+		// Error was already logged and written to the ResponseWriter
+		return
+	}
+
 }
 
 // podCreationHandler is a MutatingWebhookConfiguration handler exclusive to POD CREATE events.
@@ -298,7 +324,7 @@ func createOrUpdateMutatingWebhook(clientSet kubernetes.Interface, cert *certifi
 						Path:      &webhookPath,
 						Port:      &webhookPort,
 					},
-					CABundle: cert.GetIssuingCA()},
+					CABundle: cert.GetTrustedCAs()},
 				FailurePolicy: &failurePolicy,
 				MatchPolicy:   &matchPolicy,
 				NamespaceSelector: &metav1.LabelSelector{
@@ -336,7 +362,47 @@ func createOrUpdateMutatingWebhook(clientSet kubernetes.Interface, cert *certifi
 					return &sideEffect
 				}(),
 				TimeoutSeconds:          &webhookTimeout,
-				AdmissionReviewVersions: []string{"v1"}}},
+				AdmissionReviewVersions: []string{"v1"},
+			},
+			{
+				Name: ControlPlaneMutatingWebhookName,
+				ClientConfig: admissionregv1.WebhookClientConfig{
+					Service: &admissionregv1.ServiceReference{
+						Namespace: osmNamespace,
+						Name:      constants.OSMInjectorName,
+						Path:      &webhookPath,
+						Port:      &webhookPort,
+					},
+					CABundle: cert.GetTrustedCAs()},
+				FailurePolicy: &failurePolicy,
+				MatchPolicy:   &matchPolicy,
+				NamespaceSelector: &metav1.LabelSelector{
+					MatchExpressions: []metav1.LabelSelectorRequirement{
+						{
+							Key:      "name",
+							Operator: metav1.LabelSelectorOpIn,
+							Values:   []string{osmNamespace},
+						},
+					},
+				},
+				Rules: []admissionregv1.RuleWithOperations{
+					{
+						Operations: []admissionregv1.OperationType{admissionregv1.Create},
+						Rule: admissionregv1.Rule{
+							APIGroups:   []string{"config.openservicemesh.io"},
+							APIVersions: []string{"v1alpha2"},
+							Resources:   []string{"meshrootcertificates"},
+						},
+					},
+				},
+				SideEffects: func() *admissionregv1.SideEffectClass {
+					sideEffect := admissionregv1.SideEffectClassNoneOnDryRun
+					return &sideEffect
+				}(),
+				TimeoutSeconds:          &webhookTimeout,
+				AdmissionReviewVersions: []string{"v1"},
+			},
+		},
 	}
 
 	if _, err := clientSet.AdmissionregistrationV1().MutatingWebhookConfigurations().Create(context.Background(), &mwhc, metav1.CreateOptions{}); err != nil {
