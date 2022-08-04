@@ -17,6 +17,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
+	configv1alpha2 "github.com/openservicemesh/osm/pkg/apis/config/v1alpha2"
+
 	"github.com/openservicemesh/osm/pkg/certificate"
 	"github.com/openservicemesh/osm/pkg/configurator"
 	"github.com/openservicemesh/osm/pkg/constants"
@@ -102,6 +104,27 @@ func (wh *mutatingWebhook) getAdmissionReqResp(proxyUUID uuid.UUID, admissionReq
 	return
 }
 
+func (wh *mutatingWebhook) getGenAdmissionReqResp(admissionRequestBody []byte) (requestForNamespace string, admissionResp admissionv1.AdmissionReview) {
+	var admissionReq admissionv1.AdmissionReview
+	if _, _, err := webhook.Deserializer.Decode(admissionRequestBody, nil, &admissionReq); err != nil {
+		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrDecodingAdmissionReqBody)).
+			Msg("Error decoding admission request body")
+		admissionResp.Response = webhook.AdmissionError(err)
+	} else {
+		admissionResp.Response = wh.setMRCStatus(admissionReq.Request)
+	}
+	admissionResp.TypeMeta = admissionReq.TypeMeta
+	admissionResp.Kind = admissionReq.Kind
+
+	if admissionReq.Request != nil {
+		requestForNamespace = admissionReq.Request.Namespace
+	}
+
+	webhook.RecordAdmissionMetrics(admissionReq.Request, admissionResp.Response)
+
+	return
+}
+
 func (wh *mutatingWebhook) mutateHandler(w http.ResponseWriter, req *http.Request) {
 	log.Trace().Msgf("Received mutating webhook request: Method=%v, URL=%v", req.Method, req.URL)
 
@@ -118,6 +141,23 @@ func (wh *mutatingWebhook) mutateHandler(w http.ResponseWriter, req *http.Reques
 		// Error was already logged and written to the ResponseWriter
 		return
 	}
+
+	requestForNamespace, admissionResp := wh.getGenAdmissionReqResp(admissionRequestBody)
+
+	resp, err := json.Marshal(&admissionResp)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error marshalling admission response: %s", err), http.StatusInternalServerError)
+		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrMarshallingKubernetesResource)).
+			Msgf("Error marshalling admission response; Responded to admission request for MRC in namespace %s with HTTP %v", requestForNamespace, http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := w.Write(resp); err != nil {
+		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrWritingAdmissionResp)).
+			Msgf("Error writing admission response for MRC in namespace %s", requestForNamespace)
+	}
+
+	log.Trace().Msgf("Done responding to admission request for MRC in namespace %s", requestForNamespace)
 
 }
 
@@ -198,6 +238,35 @@ func (wh *mutatingWebhook) mutate(req *admissionv1.AdmissionRequest, proxyUUID u
 
 	patchAdmissionResponse(resp, patchBytes)
 	log.Trace().Msgf("Done creating patch admission response for pod with UUID %s in namespace %s", proxyUUID, req.Namespace)
+	return resp
+}
+
+func (wh *mutatingWebhook) setMRCStatus(req *admissionv1.AdmissionRequest) *admissionv1.AdmissionResponse {
+	if req == nil {
+		log.Error().Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrNilAdmissionReq)).Msg("nil admission Request")
+		return webhook.AdmissionError(errNilAdmissionRequest)
+	}
+
+	// Decode the Pod spec from the request
+	var mrc configv1alpha2.MeshRootCertificate
+	if err := json.Unmarshal(req.Object.Raw, &mrc); err != nil {
+		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrUnmarshallingKubernetesResource)).
+			Msgf("Error unmarshaling request to create MRC in namespace %s", req.Namespace)
+		return webhook.AdmissionError(err)
+	}
+
+	// Start building the response
+	resp := &admissionv1.AdmissionResponse{
+		Allowed: true,
+		UID:     req.UID,
+	}
+
+	mrc.Status.State = constants.MRCStateActive
+
+	patchBytes, _ := json.Marshal(makeMRCPatches(req, &mrc))
+
+	patchAdmissionResponse(resp, patchBytes)
+	log.Trace().Msgf("Done creating patch admission response for MRC in namespace %s", req.Namespace)
 	return resp
 }
 
@@ -294,6 +363,7 @@ func patchAdmissionResponse(resp *admissionv1.AdmissionResponse, patchBytes []by
 
 func createOrUpdateMutatingWebhook(clientSet kubernetes.Interface, cert *certificate.Certificate, webhookTimeout int32, webhookName, meshName, osmNamespace, osmVersion string, enableReconciler bool) error {
 	webhookPath := webhookCreatePod
+	controlPlaneWebhookPath := "/mutate"
 	webhookPort := int32(constants.InjectorWebhookPort)
 	failurePolicy := admissionregv1.Fail
 	matchPolicy := admissionregv1.Exact
@@ -370,7 +440,7 @@ func createOrUpdateMutatingWebhook(clientSet kubernetes.Interface, cert *certifi
 					Service: &admissionregv1.ServiceReference{
 						Namespace: osmNamespace,
 						Name:      constants.OSMInjectorName,
-						Path:      &webhookPath,
+						Path:      &controlPlaneWebhookPath,
 						Port:      &webhookPort,
 					},
 					CABundle: cert.GetTrustedCAs()},

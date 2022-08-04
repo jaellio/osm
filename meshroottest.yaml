@@ -1,0 +1,15 @@
+apiVersion: config.openservicemesh.io/v1alpha2
+kind: MeshRootCertificate
+metadata:
+  name: test
+  namespace: osm-system
+spec:
+  trustDomain: "valid"
+  provider:
+    tresor:
+      ca:
+        secretRef:
+          name: "test"
+          namespace: "test"
+status:
+  state: "test2"

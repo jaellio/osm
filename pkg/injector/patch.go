@@ -15,6 +15,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
+	configv1alpha2 "github.com/openservicemesh/osm/pkg/apis/config/v1alpha2"
+
 	"github.com/openservicemesh/osm/pkg/certificate"
 	"github.com/openservicemesh/osm/pkg/constants"
 	"github.com/openservicemesh/osm/pkg/envoy"
@@ -221,6 +223,17 @@ func makePatches(req *admissionv1.AdmissionRequest, pod *corev1.Pod) []jsonpatch
 	if err != nil {
 		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrMarshallingKubernetesResource)).
 			Msgf("Error marshaling Pod with UID=%s", pod.ObjectMeta.UID)
+	}
+	admissionResponse := admission.PatchResponseFromRaw(original, current)
+	return admissionResponse.Patches
+}
+
+func makeMRCPatches(req *admissionv1.AdmissionRequest, mrc *configv1alpha2.MeshRootCertificate) []jsonpatch.JsonPatchOperation {
+	original := req.Object.Raw
+	current, err := json.Marshal(mrc)
+	if err != nil {
+		log.Error().Err(err).Str(errcode.Kind, errcode.GetErrCodeWithMetric(errcode.ErrMarshallingKubernetesResource)).
+			Msgf("Error marshaling MRC with UID=%s", mrc.ObjectMeta.UID)
 	}
 	admissionResponse := admission.PatchResponseFromRaw(original, current)
 	return admissionResponse.Patches
