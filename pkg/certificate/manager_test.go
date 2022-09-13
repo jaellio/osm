@@ -330,7 +330,7 @@ func TestHandleMRCEvent(t *testing.T) {
 			mrcClient: &fakeMRCClient{},
 			mrcEvent: MRCEvent{
 				Type: MRCEventAdded,
-				MRC: &v1alpha2.MeshRootCertificate{
+				NewMRC: &v1alpha2.MeshRootCertificate{
 					ObjectMeta: v1.ObjectMeta{
 						Name: "my-mrc",
 					},

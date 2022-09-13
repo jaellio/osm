@@ -135,7 +135,9 @@ type MRCEventType string
 type MRCEvent struct {
 	Type MRCEventType
 	// The last observed version of the MRC as of the time of this event
-	MRC *v1alpha2.MeshRootCertificate
+	NewMRC *v1alpha2.MeshRootCertificate
+	// The previous last observed version of the MRC as of the time of this event
+	OldMRC *v1alpha2.MeshRootCertificate
 }
 
 var (

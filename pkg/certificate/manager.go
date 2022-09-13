@@ -119,38 +119,21 @@ func (m *Manager) start(ctx context.Context, mrcClient MRCClient) error {
 func (m *Manager) handleMRCEvent(mrcClient MRCClient, event MRCEvent) error {
 	switch event.Type {
 	case MRCEventAdded:
-		mrc := event.MRC
-		if mrc.Status.State == constants.MRCStateError {
-			log.Debug().Msgf("skipping MRC with error state %s", mrc.GetName())
+		mrc := event.NewMRC
+		if mrc.Spec.Intent != constants.MRCIntentActive {
 			return nil
 		}
-
 		client, ca, err := mrcClient.GetCertIssuerForMRC(mrc)
 		if err != nil {
 			return err
 		}
 
 		c := &issuer{Issuer: client, ID: mrc.Name, CertificateAuthority: ca, TrustDomain: mrc.Spec.TrustDomain}
-		switch {
-		case mrc.Status.State == constants.MRCStateActive:
-			m.mu.Lock()
-			m.signingIssuer = c
-			m.validatingIssuer = c
-			m.mu.Unlock()
-		case mrc.Status.State == constants.MRCStateIssuingRollback || mrc.Status.State == constants.MRCStateIssuingRollout:
-			m.mu.Lock()
-			m.signingIssuer = c
-			m.mu.Unlock()
-		case mrc.Status.State == constants.MRCStateValidatingRollback || mrc.Status.State == constants.MRCStateValidatingRollout:
-			m.mu.Lock()
-			m.validatingIssuer = c
-			m.mu.Unlock()
-		default:
-			m.mu.Lock()
-			m.signingIssuer = c
-			m.validatingIssuer = c
-			m.mu.Unlock()
-		}
+
+		m.mu.Lock()
+		m.signingIssuer = c
+		m.validatingIssuer = c
+		m.mu.Unlock()
 	case MRCEventUpdated:
 		// TODO
 	}
